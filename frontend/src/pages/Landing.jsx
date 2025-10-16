@@ -34,13 +34,13 @@ const Landing = () => {
           
           {/* Desktop Menu - Hidden on mobile */}
           <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 gap-8">
-            <a href="#features" className="text-gray-600 hover:text-gray-900">Features</a>
-            <a href="#about-section" className="text-gray-600 hover:text-gray-900">About</a>
+            <a href="#features" className="text-black hover:text-gray-500">Features</a>
+            <a href="#about-section" className="text-black hover:text-gray-500">About</a>
           </div>
           
           {/* Desktop Auth Buttons */}
           <div className="hidden sm:flex items-center gap-4 sm:gap-8">
-            <a href="/login" className="text-gray-600 hover:text-gray-900 text-sm sm:text-base">Sign In</a>
+            <a href="/login" className="text-black hover:text-gray-500 text-sm sm:text-base">Sign In</a>
             <a href="/signup" className="bg-blue-600 text-white px-4 sm:px-6 py-2 rounded-lg hover:bg-blue-700 transition text-sm sm:text-base">
               Get Started
             </a>
@@ -89,7 +89,7 @@ const Landing = () => {
       <section className="bg-gradient-to-r from-blue-600 via-blue-500 to-teal-400 text-white px-4 sm:px-6 py-12 sm:py-20">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12 items-center">
           <div className="order-2 md:order-1">
-            <p className="bg-gradient-to-r from-blue-600 to-blue-400 text-white px-3 sm:px-4 py-2 mb-6 sm:mb-10 rounded-lg hover:from-blue-700 inline-block text-sm sm:text-base">
+            <p className="bg-gradient-to-r from-blue-600 to-blue-400 text-white px-3 sm:px-4 py-2 mb-6 sm:mb-10 rounded-lg inline-block text-sm sm:text-base">
               Empowering Students Through Smart Skill Discovery
             </p>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 leading-tight">
@@ -99,10 +99,10 @@ const Landing = () => {
               Discover, develop, and showcase your strengths through intelligent skill mapping designed for IT students and educators.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <a href="/signup" className="bg-white text-blue-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition text-center text-sm sm:text-base">
+              <a href="/signup" className="bg-white text-blue-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-gray-400 transition text-center text-sm sm:text-base">
                 Get Started
               </a>
-              <a href="#features" className="border-2 border-white text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition text-center text-sm sm:text-base">
+              <a href="#features" className="border-2 border-white text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-gray-200 hover:text-blue-600 transition text-center text-sm sm:text-base">
                 Learn More
               </a>
             </div>
@@ -215,10 +215,10 @@ const Landing = () => {
             Join thousands of students already mapping their skills and achieving their goals
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-            <a href="/signup" className="bg-white text-blue-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition text-center text-sm sm:text-base">
+            <a href="/signup" className="bg-white text-blue-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-gray-300 transition text-center text-sm sm:text-base">
               Get Started Free
             </a>
-            <a href="#features" className="border-2 border-white text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition text-center text-sm sm:text-base">
+            <a href="#features" className="border-2 border-white text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-gray-300 hover:text-blue-600 transition text-center text-sm sm:text-base">
               View Demo
             </a>
           </div>
