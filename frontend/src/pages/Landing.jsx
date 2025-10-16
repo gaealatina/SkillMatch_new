@@ -173,9 +173,6 @@ const Landing = () => {
             <a href="/signup" className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
               Get Started Free
             </a>
-            <a href="#features" className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition">
-              View Demo
-            </a>
           </div>
         </div>
       </section>
