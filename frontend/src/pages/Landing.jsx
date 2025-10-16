@@ -1,4 +1,5 @@
 import { Users, Lightbulb, GraduationCap } from 'lucide-react';
+import { useState } from 'react';
 import logo from '../assets/logo.png';
 import container from '../assets/Container.png';
 import girl from '../assets/girl.png';
@@ -7,14 +8,17 @@ import up from '../assets/up.png';
 import target from '../assets/target_icon.png';
 import check from '../assets/check.png';
 
-
-
-
 const Landing = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-50">
+      <nav className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center relative">
           {/* Left: Logo and Brand */}
           <div className="flex items-center gap-2">
@@ -22,95 +26,136 @@ const Landing = () => {
               <img
                 src={logo}
                 alt="SkillMatch Logo"
-                className="w-10 h-10 mr-2 inline-block"
+                className="w-8 h-8 sm:w-10 sm:h-10 mr-1 sm:mr-2 inline-block"
               />
             </div>
-            <span className="text-xl font-semibold text-gray-900">SkillMatch</span>
+            <span className="text-base sm:text-xl font-semibold text-gray-900">SkillMatch</span>
           </div>
           
-          {/* Center: Features and About */}
-          <div className="absolute left-1/2 -translate-x-1/2 flex gap-8">
+          {/* Desktop Menu - Hidden on mobile */}
+          <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 gap-8">
             <a href="#features" className="text-gray-600 hover:text-gray-900">Features</a>
             <a href="#about-section" className="text-gray-600 hover:text-gray-900">About</a>
           </div>
           
-          {/* Right: Auth Buttons */}
-          <div className="flex items-center gap-8">
-            <a href="/login" className="text-gray-600 hover:text-gray-900">Sign In</a>
-            <a href="/signup" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">Get Started</a>
+          {/* Desktop Auth Buttons */}
+          <div className="hidden sm:flex items-center gap-4 sm:gap-8">
+            <a href="/login" className="text-gray-600 hover:text-gray-900 text-sm sm:text-base">Sign In</a>
+            <a href="/signup" className="bg-blue-600 text-white px-4 sm:px-6 py-2 rounded-lg hover:bg-blue-700 transition text-sm sm:text-base">
+              Get Started
+            </a>
           </div>
+
+          {/* Mobile Menu Button */}
+          <button 
+            onClick={toggleMobileMenu}
+            className="md:hidden p-2"
+          >
+            <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} 
+              />
+            </svg>
+          </button>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-white border-t border-gray-200 px-4 py-4">
+            <div className="flex flex-col space-y-4">
+              <a 
+                href="#features" 
+                className="text-gray-600 hover:text-gray-900 py-2" 
+                onClick={toggleMobileMenu}
+              >
+                Features
+              </a>
+              <a 
+                href="#about-section" 
+                className="text-gray-600 hover:text-gray-900 py-2" 
+                onClick={toggleMobileMenu}
+              >
+                About
+              </a>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 via-blue-500 to-teal-400 text-white px-6 py-20">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-          <div>
-            <p className="bg-gradient-to-r from-blue-600 to-blue-400 text-white px-4 py-2 mb-10 rounded-lg hover:from-blue-700 inline-block">Empowering Students Through Smart Skill Discovery</p>
-            <h1 className="text-5xl font-bold mb-6 leading-tight">
+      <section className="bg-gradient-to-r from-blue-600 via-blue-500 to-teal-400 text-white px-4 sm:px-6 py-12 sm:py-20">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12 items-center">
+          <div className="order-2 md:order-1">
+            <p className="bg-gradient-to-r from-blue-600 to-blue-400 text-white px-3 sm:px-4 py-2 mb-6 sm:mb-10 rounded-lg hover:from-blue-700 inline-block text-sm sm:text-base">
+              Empowering Students Through Smart Skill Discovery
+            </p>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 leading-tight">
               Empower Your Skills with SkillMatch
             </h1>
-            <p className="text-lg mb-8 text-blue-50">
+            <p className="text-base sm:text-lg mb-6 sm:mb-8 text-blue-50">
               Discover, develop, and showcase your strengths through intelligent skill mapping designed for IT students and educators.
             </p>
-            <div className="flex gap-4">
-              <a href="/signup" className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <a href="/signup" className="bg-white text-blue-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition text-center text-sm sm:text-base">
                 Get Started
               </a>
-              <a href="#features" className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition">
+              <a href="#features" className="border-2 border-white text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition text-center text-sm sm:text-base">
                 Learn More
               </a>
             </div>
           </div>
-          <div>
-          <img 
-            src={container}
-            alt="Students collaborating" 
-            className="rounded-2xl w-full h-auto"
-          />
+          <div className="order-1 md:order-2">
+            <img 
+              src={container}
+              alt="Students collaborating" 
+              className="rounded-2xl w-full h-auto max-w-xs mx-auto sm:max-w-none"
+            />
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 px-6 bg-gray-50">
+      <section id="features" className="py-12 sm:py-20 px-4 sm:px-6 bg-gray-50">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Powerful Features for Your Success
             </h2>
-            <p className="text-gray-600 text-lg">
+            <p className="text-gray-600 text-base sm:text-lg max-w-2xl mx-auto">
               Everything you need to map, track, and grow your skills throughout your academic journey.
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-6">
-                <img src={brain} alt="icon" className="w-10 h-10 text-blue-600" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+            <div className="bg-white p-6 sm:p-8 rounded-xl shadow-sm hover:shadow-md transition">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-6 mx-auto">
+                <img src={brain} alt="icon" className="w-6 h-6 sm:w-10 sm:h-10" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Skill Showcase</h3>
-              <p className="text-gray-600">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 text-center">Skill Showcase</h3>
+              <p className="text-gray-600 text-center text-sm sm:text-base">
                 Visualize your strengths and gaps with interactive skill mapping.
               </p>
             </div>
 
-            <div className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-6">
-                <img src={up} alt="icon" className="w-10 h-10 text-blue-600" />
+            <div className="bg-white p-6 sm:p-8 rounded-xl shadow-sm hover:shadow-md transition">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-6 mx-auto">
+                <img src={up} alt="icon" className="w-6 h-6 sm:w-10 sm:h-10" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Smart Suggestions</h3>
-              <p className="text-gray-600">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 text-center">Smart Suggestions</h3>
+              <p className="text-gray-600 text-center text-sm sm:text-base">
                 Get AI-powered recommendations tailored to your learning path.
               </p>
             </div>
 
-            <div className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-6">
-                <img src={target} alt="icon" className="w-10 h-10 text-blue-600" />
+            <div className="bg-white p-6 sm:p-8 rounded-xl shadow-sm hover:shadow-md transition">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-6 mx-auto">
+                <img src={target} alt="icon" className="w-6 h-6 sm:w-10 sm:h-10" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Role Tracking</h3>
-              <p className="text-gray-600">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 text-center">Role Tracking</h3>
+              <p className="text-gray-600 text-center text-sm sm:text-base">
                 Monitor your progress across projects and build your portfolio.
               </p>
             </div>
@@ -119,41 +164,41 @@ const Landing = () => {
       </section>
 
       {/* IT Students Section */}
-      <section id="about-section" className="py-20 px-6 bg-white">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-          <div>
+      <section id="about-section" className="py-12 sm:py-20 px-4 sm:px-6 bg-white">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12 items-center">
+          <div className="mb-8 md:mb-0">
             <img 
               src={girl} 
               alt="Student studying" 
-              className=" w-full h-auto"
+              className="w-full h-auto max-w-xs mx-auto md:max-w-none"
             />
           </div>
           <div>
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 sm:mb-6">
               Designed for IT Students and Educators
             </h2>
-            <p className="text-gray-600 text-lg mb-8">
+            <p className="text-gray-600 text-base sm:text-lg mb-6 sm:mb-8">
               SkillMatch empowers students to take control of their learning journey while providing educators with powerful insights into student progress and skill development.
             </p>
-            <ul className="space-y-4 mb-8">
+            <ul className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
               <li className="flex items-start gap-3">
-                <img src={check} alt="check" className="w-8 h-8" />
-                <span className="text-gray-700">Track skills across multiple projects</span>
+                <img src={check} alt="check" className="w-5 h-5 sm:w-8 sm:h-8 flex-shrink-0 mt-1" />
+                <span className="text-gray-700 text-sm sm:text-base">Track skills across multiple projects</span>
               </li>
               <li className="flex items-start gap-3">
-                <img src={check} alt="check" className="w-8 h-8" />
-                <span className="text-gray-700">Get personalized learning recommendations</span>
+                <img src={check} alt="check" className="w-5 h-5 sm:w-8 sm:h-8 flex-shrink-0 mt-1" />
+                <span className="text-gray-700 text-sm sm:text-base">Get personalized learning recommendations</span>
               </li>
               <li className="flex items-start gap-3">
-                <img src={check} alt="check" className="w-8 h-8" />
-                <span className="text-gray-700">Showcase your growth to employers</span>
+                <img src={check} alt="check" className="w-5 h-5 sm:w-8 sm:h-8 flex-shrink-0 mt-1" />
+                <span className="text-gray-700 text-sm sm:text-base">Showcase your growth to employers</span>
               </li>
               <li className="flex items-start gap-3">
-                <img src={check} alt="check" className="w-8 h-8" />
-                <span className="text-gray-700">Collaborate with peers and instructors</span>
+                <img src={check} alt="check" className="w-5 h-5 sm:w-8 sm:h-8 flex-shrink-0 mt-1" />
+                <span className="text-gray-700 text-sm sm:text-base">Collaborate with peers and instructors</span>
               </li>
             </ul>
-            <a href="/signup" className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+            <a href="/signup" className="inline-block bg-blue-600 text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition text-sm sm:text-base">
               Learn More
             </a>
           </div>
@@ -161,19 +206,19 @@ const Landing = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-gradient-to-r from-blue-600 via-blue-500 to-teal-400 text-white px-6 py-20">
+      <section className="bg-gradient-to-r from-blue-600 via-blue-500 to-teal-400 text-white px-4 sm:px-6 py-12 sm:py-20">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
             Ready to Transform Your Learning Journey?
           </h2>
-          <p className="text-xl mb-8 text-blue-50">
+          <p className="text-lg sm:text-xl mb-6 sm:mb-8 text-blue-50">
             Join thousands of students already mapping their skills and achieving their goals
           </p>
-          <div className="flex gap-4 justify-center">
-            <a href="/signup" className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+            <a href="/signup" className="bg-white text-blue-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition text-center text-sm sm:text-base">
               Get Started Free
             </a>
-            <a href="#features" className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition">
+            <a href="#features" className="border-2 border-white text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition text-center text-sm sm:text-base">
               View Demo
             </a>
           </div>
@@ -181,9 +226,9 @@ const Landing = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 px-6 py-8">
+      <footer className="bg-gray-900 text-gray-400 px-4 sm:px-6 py-6 sm:py-8">
         <div className="max-w-7xl mx-auto text-center">
-          <p>© 2025 SkillMatch. Empowering students through smart skill discovery.</p>
+          <p className="text-sm sm:text-base">© 2025 SkillMatch. Empowering students through smart skill discovery.</p>
         </div>
       </footer>
     </div>
