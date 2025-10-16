@@ -33,7 +33,8 @@ const Signup = () => {
             <span className="text-xl font-semibold text-gray-900">SkillMatch</span>
             
             <div className='mr-auto absolute right-2 -translate-x-1/2 flex gap-8'>
-              <a href="/login" className="bg-blue-600 text-white hover:bg-blue-700 pt-0.5 pb-0.5 pl-3 pr-3 px-6 py-3 rounded-lg">Sign In</a>
+              <a href="/" className="mt-2 text-black hover:text-gray-400 text-sm">Back</a>
+              <a href="/login" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm">Sign In</a>
             </div>
           </div>  
         </div>
@@ -106,10 +107,10 @@ const Signup = () => {
                 >
                   <option value="">Select course</option>
                   <option value="BSIT">BS Information Technology</option>
-                  <option value="BSCS">BS Computer Security</option>
-                  <option value="BSDA">BS Digital Arts</option>
-                  <option value="BSSD">BS System Development</option>
-                  <option value="BSBI">BS Business Informatics</option>
+                  <option value="BSCS">Computer Security</option>
+                  <option value="BSDA">Digital Arts</option>
+                  <option value="BSSD">System Development</option>
+                  <option value="BSBI">Business Informatics</option>
                 </select>
               </div>
 
