@@ -28,12 +28,18 @@ export default function DashboardNav({
   return (
     <div className="w-full bg-white border-b border-gray-200">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Left: Logo */}
-        <Link to="/" className="flex items-center gap-2 shrink-0">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-400 to-blue-600 grid place-items-center">
-            <img src={logo} alt="SkillMatch" className="w-5 h-5" />
+        <Link to="/dashboard" className="flex items-center gap-2 shrink-0">
+          {/* Left: Logo and Brand */}
+          <div className="flex items-center gap-2">
+            <div>
+              <img
+                src={logo}
+                alt="SkillMatch Logo"
+                className="w-8 h-8 sm:w-10 sm:h-10 mr-1 sm:mr-2 inline-block"
+              />
+            </div>
+            <span className="text-base sm:text-xl font-semibold text-gray-900">SkillMatch</span>
           </div>
-          <span className="text-lg font-semibold text-gray-900">SkillMatch</span>
         </Link>
 
         {/* Center: Nav links */}
