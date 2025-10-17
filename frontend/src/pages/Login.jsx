@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import girl2 from '../assets/girl2.png';
 import logo from '../assets/logo.png';
 import googleLogo from '../assets/googleLogo.png'; 
@@ -6,6 +6,32 @@ import googleLogo from '../assets/googleLogo.png';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const googleButtonRef = useRef(null);
+
+  useEffect(() => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!window.google || !clientId) return;
+    window.google.accounts.id.initialize({
+      client_id: clientId,
+      callback: async (response) => {
+        try {
+          const res = await fetch('/api/users/google', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ credential: response.credential })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message || 'Google login failed');
+          console.log('Google login success', data);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    });
+    if (googleButtonRef.current) {
+      window.google.accounts.id.renderButton(googleButtonRef.current, { theme: 'outline', size: 'large', width: '100%' });
+    }
+  }, []);
 
   const handleSubmit = () => {
     console.log('Login submitted:', { email, password });
@@ -128,16 +154,7 @@ const Login = () => {
 
           {/* OAuth Options */}
           <div className="space-y-3">
-            <button className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
-              <img
-                src={googleLogo}
-                alt="Google logo"
-                className="w-5 h-5"
-              />
-              <span className="text-gray-700 font-medium text-sm">
-                Google
-              </span>
-            </button>
+            <div ref={googleButtonRef} className="w-full flex items-center justify-center"></div>
           </div>
         </div>
 
