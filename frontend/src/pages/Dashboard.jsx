@@ -1,4 +1,4 @@
-import DashboardNav from '../components/dahsboardNav';
+import DashboardNav from '../components/dashboardNAv';
 import { ArrowRight, Gift, Award, Activity, Clock, History } from 'lucide-react';
 
 const skills = [

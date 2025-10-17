@@ -15,8 +15,14 @@ const Landing = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  const handleScroll = (id) => (e) => {
+    e.preventDefault();
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white scroll-smooth">
       {/* Navigation */}
       <nav className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center relative">
@@ -32,10 +38,10 @@ const Landing = () => {
             <span className="text-base sm:text-xl font-semibold text-gray-900">SkillMatch</span>
           </div>
           
-          {/* Desktop Menu - Hidden on mobile */}
+          {/* Desktop Menu - Hidden on mobile */} 
           <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 gap-8">
-            <a href="#features" className="text-black hover:text-gray-500">Features</a>
-            <a href="#about-section" className="text-black hover:text-gray-500">About</a>
+            <a href="#features" onClick={handleScroll('features')} className="text-black hover:text-[#14B8A6] ">Features</a>
+            <a href="#about-section" onClick={handleScroll('about-section')} className="text-black hover:text-[#14B8A6]">About</a>
           </div>
           
           {/* Desktop Auth Buttons */}
@@ -69,14 +75,14 @@ const Landing = () => {
               <a 
                 href="#features" 
                 className="text-gray-600 hover:text-gray-900 py-2" 
-                onClick={toggleMobileMenu}
+                onClick={(e) => { handleScroll('features')(e); toggleMobileMenu(); }}
               >
                 Features
               </a>
               <a 
                 href="#about-section" 
                 className="text-gray-600 hover:text-gray-900 py-2" 
-                onClick={toggleMobileMenu}
+                onClick={(e) => { handleScroll('about-section')(e); toggleMobileMenu(); }}
               >
                 About
               </a>

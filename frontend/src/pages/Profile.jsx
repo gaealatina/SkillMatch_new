@@ -1,4 +1,4 @@
-import DashboardNav from '../components/dahsboardNav';
+import DashboardNav from '../components/dashboardNAv';
 import { Edit3, Plus, ChevronRight } from 'lucide-react';
 
 const categories = [
