@@ -224,8 +224,8 @@ const Landing = () => {
             <a href="/signup" className="bg-white text-blue-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-gray-300 transition text-center text-sm sm:text-base">
               Get Started Free
             </a>
-            <a href="/login" className="border-2 border-white text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-gray-300 hover:text-blue-600 transition text-center text-sm sm:text-base">
-              Sign in
+            <a href="#features" className="border-2 border-white text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-gray-300 hover:text-blue-600 transition text-center text-sm sm:text-base">
+              View Demo
             </a>
           </div>
         </div>

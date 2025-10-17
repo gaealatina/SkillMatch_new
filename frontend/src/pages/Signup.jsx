@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { BookOpen, Users, Zap } from 'lucide-react';
 import logo from '../assets/logo.png';
 
+
 const Signup = () => {
   const [userType, setUserType] = useState(null);
   const [formData, setFormData] = useState({
