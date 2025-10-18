@@ -158,7 +158,7 @@ const Login = () => {
             {/* Email / Student ID */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email / Student ID
+                Email
               </label>
               <input
                 type="text"
