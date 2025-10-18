@@ -4,6 +4,7 @@ import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
 import Profile from "./pages/Profile.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
+import RoleHistory from "./pages/RoleHistory.jsx";
 import Settings from "./pages/Settings.jsx";
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/roles" element={<RoleHistory />} />
         <Route path="/settings" element={<Settings />} />
       </Routes>
     </Router>
