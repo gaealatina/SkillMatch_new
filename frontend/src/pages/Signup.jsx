@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { BookOpen, Users, Zap } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { BookOpen, Users, Zap, X, CheckCircle, Shield, Eye, Lock, Database, Mail, Menu } from 'lucide-react';
 import logo from '../assets/logo.png';
 
 
@@ -17,6 +18,9 @@ const Signup = () => {
   });
   const [errors, setErrors] = useState({});
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const validateFirstName = (value) => /^[a-zA-Z\s]*$/.test(value);
   const validateLastName = (value) => /^[a-zA-Z\s]*$/.test(value);
@@ -104,44 +108,335 @@ const Signup = () => {
     }
   };
 
+  // Terms of Service Modal
+  const TermsModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-white rounded-lg w-[95%] sm:w-[90%] md:w-[85%] lg:w-[80%] xl:w-[75%] max-w-screen-xl max-h-[85vh] overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b flex-shrink-0">
+          <h2 className="text-2xl font-bold text-gray-900">Terms of Service</h2>
+          <button
+            onClick={() => setShowTermsModal(false)}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X size={24} />
+          </button>
+        </div>
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1">
+          <div className="prose prose-gray max-w-none">
+            <section className="mb-8">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <CheckCircle className="text-green-600" size={20} />
+                1. Acceptance of Terms
+              </h3>
+              <p className="text-gray-700 leading-relaxed">
+                By accessing and using SkillMatch, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <CheckCircle className="text-green-600" size={20} />
+                2. User Accounts
+              </h3>
+              <p className="text-gray-700 leading-relaxed mb-4">
+                When you create an account with us, you must provide information that is accurate, complete, and current at all times. You are responsible for:
+              </p>
+              <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
+                <li>Maintaining the confidentiality of your account and password</li>
+                <li>All activities that occur under your account</li>
+                <li>Notifying us immediately of any unauthorized use of your account</li>
+                <li>Using only PHINMA Education email addresses (@phinmaed.com or @phinma.edu.com)</li>
+              </ul>
+            </section>
+
+            <section className="mb-8">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <CheckCircle className="text-green-600" size={20} />
+                3. Prohibited Uses
+              </h3>
+              <p className="text-gray-700 leading-relaxed mb-4">
+                You may not use our service:
+              </p>
+              <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
+                <li>For any unlawful purpose or to solicit others to perform unlawful acts</li>
+                <li>To violate any international, federal, provincial, or state regulations, rules, laws, or local ordinances</li>
+                <li>To infringe upon or violate our intellectual property rights or the intellectual property rights of others</li>
+                <li>To harass, abuse, insult, harm, defame, slander, disparage, intimidate, or discriminate</li>
+                <li>To submit false or misleading information</li>
+                <li>To upload or transmit viruses or any other type of malicious code</li>
+              </ul>
+            </section>
+
+            <section className="mb-8">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <CheckCircle className="text-green-600" size={20} />
+                4. Content
+              </h3>
+              <p className="text-gray-700 leading-relaxed mb-4">
+                Our service allows you to post, link, store, share and otherwise make available certain information, text, graphics, videos, or other material ("Content"). You are responsible for the Content that you post to the service, including its legality, reliability, and appropriateness.
+              </p>
+              <p className="text-gray-700 leading-relaxed">
+                By posting Content to the service, you grant us the right and license to use, modify, publicly perform, publicly display, reproduce, and distribute such Content on and through the service.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <CheckCircle className="text-green-600" size={20} />
+                5. Termination
+              </h3>
+              <p className="text-gray-700 leading-relaxed">
+                We may terminate or suspend your account and bar access to the service immediately, without prior notice or liability, under our sole discretion, for any reason whatsoever and without limitation, including but not limited to a breach of the Terms.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <CheckCircle className="text-green-600" size={20} />
+                6. Contact Information
+              </h3>
+              <p className="text-gray-700 leading-relaxed mb-4">
+                If you have any questions about these Terms of Service, please contact us at:
+              </p>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-gray-700"><strong>Email:</strong> support@skillmatch.com</p>
+                <p className="text-gray-700"><strong>Phone:</strong> +63 (2) 1234-5678</p>
+                <p className="text-gray-700"><strong>Address:</strong> PHINMA Education, Manila, Philippines</p>
+              </div>
+            </section>
+          </div>
+        </div>
+        <div className="flex justify-end gap-3 p-4 sm:p-6 border-t bg-gray-50 flex-shrink-0">
+          <button
+            onClick={() => setShowTermsModal(false)}
+            className="px-6 py-3 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+          >
+            Close
+          </button>
+          <button
+            onClick={() => {
+              setTermsAccepted(true);
+              setShowTermsModal(false);
+            }}
+            className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-lg"
+          >
+            I Accept
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Privacy Policy Modal
+  const PrivacyModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-white rounded-lg w-[95%] sm:w-[90%] md:w-[85%] lg:w-[80%] xl:w-[75%] max-w-screen-xl max-h-[85vh] overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b flex-shrink-0">
+          <h2 className="text-2xl font-bold text-gray-900">Privacy Policy</h2>
+          <button
+            onClick={() => setShowPrivacyModal(false)}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X size={24} />
+          </button>
+        </div>
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1">
+          <div className="prose prose-gray max-w-none">
+            <section className="mb-8">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Shield className="text-blue-600" size={20} />
+                1. Information We Collect
+              </h3>
+              <p className="text-gray-700 leading-relaxed mb-4">
+                We collect information you provide directly to us, such as when you create an account, use our services, or contact us for support.
+              </p>
+              
+              <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <Users className="text-green-600" size={18} />
+                Personal Information
+              </h4>
+              <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
+                <li>Name and contact information (email address, phone number)</li>
+                <li>PHINMA Education email address (@phinmaed.com or @phinma.edu.com)</li>
+                <li>Profile information (role, department, skills, experience)</li>
+                <li>Project history and performance data</li>
+                <li>Account credentials and preferences</li>
+              </ul>
+
+              <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <Database className="text-purple-600" size={18} />
+                Usage Information
+              </h4>
+              <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
+                <li>Log data (IP address, browser type, pages visited)</li>
+                <li>Device information (device type, operating system)</li>
+                <li>Cookies and similar tracking technologies</li>
+                <li>Usage patterns and preferences</li>
+              </ul>
+            </section>
+
+            <section className="mb-8">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Eye className="text-blue-600" size={20} />
+                2. How We Use Your Information
+              </h3>
+              <p className="text-gray-700 leading-relaxed mb-4">
+                We use the information we collect to provide, maintain, and improve our services:
+              </p>
+              <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
+                <li>Provide and maintain the SkillMatch platform</li>
+                <li>Process transactions and send related information</li>
+                <li>Send technical notices, updates, and support messages</li>
+                <li>Respond to your comments and questions</li>
+                <li>Improve our services and develop new features</li>
+                <li>Monitor and analyze usage and trends</li>
+                <li>Personalize your experience</li>
+                <li>Ensure platform security and prevent fraud</li>
+              </ul>
+            </section>
+
+            <section className="mb-8">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Lock className="text-green-600" size={20} />
+                3. Data Security
+              </h3>
+              <p className="text-gray-700 leading-relaxed mb-4">
+                We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction:
+              </p>
+              <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
+                <li>Encryption of data in transit and at rest</li>
+                <li>Regular security assessments and updates</li>
+                <li>Access controls and authentication measures</li>
+                <li>Employee training on data protection</li>
+                <li>Incident response procedures</li>
+              </ul>
+            </section>
+
+            <section className="mb-8">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Users className="text-green-600" size={20} />
+                4. Your Rights and Choices
+              </h3>
+              <p className="text-gray-700 leading-relaxed mb-4">
+                You have certain rights regarding your personal information:
+              </p>
+              <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
+                <li><strong>Access:</strong> Request access to your personal information</li>
+                <li><strong>Correction:</strong> Request correction of inaccurate information</li>
+                <li><strong>Deletion:</strong> Request deletion of your personal information</li>
+                <li><strong>Portability:</strong> Request a copy of your data in a portable format</li>
+                <li><strong>Objection:</strong> Object to processing of your personal information</li>
+                <li><strong>Withdrawal:</strong> Withdraw consent where processing is based on consent</li>
+              </ul>
+            </section>
+
+            <section className="mb-8">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Mail className="text-blue-600" size={20} />
+                5. Contact Us
+              </h3>
+              <p className="text-gray-700 leading-relaxed mb-4">
+                If you have any questions about this Privacy Policy or our privacy practices, please contact us:
+              </p>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-gray-700"><strong>Email:</strong> privacy@skillmatch.com</p>
+                <p className="text-gray-700"><strong>Phone:</strong> +63 (2) 1234-5678</p>
+                <p className="text-gray-700"><strong>Address:</strong> PHINMA Education, Manila, Philippines</p>
+              </div>
+            </section>
+          </div>
+        </div>
+        <div className="flex justify-end gap-3 p-4 sm:p-6 border-t bg-gray-50 flex-shrink-0">
+          <button
+            onClick={() => setShowPrivacyModal(false)}
+            className="px-6 py-3 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+          >
+            Close
+          </button>
+          <button
+            onClick={() => {
+              setTermsAccepted(true);
+              setShowPrivacyModal(false);
+            }}
+            className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-lg"
+          >
+            I Accept
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-white">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex justify-between items-center relative">
+      <nav className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          {/* Logo */}
           <div className='flex items-center gap-2'>
-            <img src={logo} alt="logo" className='w-10' h-10/>
-            <span className="text-xl font-semibold text-gray-900">SkillMatch</span>
-            
-            <div className='mr-auto absolute right-2 -translate-x-1/2 flex gap-8'>
-              <a href="/" className="mt-2 text-black hover:text-gray-400 text-sm">Back</a>
-              <a href="/login" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm">Sign In</a>
-            </div>
-          </div>  
+            <img src={logo} alt="logo" className='w-8 h-8 sm:w-10 sm:h-10'/>
+            <span className="text-lg sm:text-xl font-semibold text-gray-900">SkillMatch</span>
+          </div>
+          
+          {/* Desktop Navigation */}
+          <div className='hidden md:flex items-center gap-6'>
+            <Link to="/" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Back</Link>
+            <Link to="/login" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium">Sign In</Link>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <Menu size={24} />
+          </button>
         </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden mt-4 pb-4 border-t border-gray-200">
+            <div className="flex flex-col space-y-3 pt-4">
+              <Link 
+                to="/" 
+                className="text-gray-600 hover:text-gray-900 text-sm font-medium py-2 px-2 hover:bg-gray-100 rounded-lg transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Back
+              </Link>
+              <Link 
+                to="/login" 
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium text-center"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Sign In
+              </Link>
+            </div>
+          </div>
+        )}
       </nav>
 
-      <div className='flex justify-center items-center min-h-screen px-4 py-8 bg-gray-50'>
-        <div className='bg-white p-8 rounded-2xl shadow-lg w-full max-w-2xl'>
-          <h2 className='text-2xl font-bold mb-2 text-center text-gray-900'>Create your account</h2>
-          <p className='text-center text-gray-600 mb-8'>Join SkillMatch to start mapping your skills and tracking your progress</p>
+      <div className='flex justify-center items-center min-h-screen px-4 py-4 sm:py-8 bg-gray-50'>
+        <div className='bg-white p-4 sm:p-8 rounded-2xl shadow-lg w-full max-w-2xl'>
+          <h2 className='text-xl sm:text-2xl font-bold mb-2 text-center text-gray-900'>Create your account</h2>
+          <p className='text-center text-sm sm:text-base text-gray-600 mb-6 sm:mb-8'>Join SkillMatch to start mapping your skills and tracking your progress</p>
 
           <div className='space-y-6'>
             <div>
               <p className='text-sm font-medium text-gray-900 mb-4'>I am a:</p>
-              <div className='grid grid-cols-2 gap-4'>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4'>
                 <button
                   onClick={() => {
                     setUserType('student');
                     setFormData(prev => ({ ...prev, course: '', yearLevel: '' }));
                   }}
-                  className={`p-6 rounded-lg border-2 transition-all ${
+                  className={`p-4 sm:p-6 rounded-lg border-2 transition-all ${
                     userType === 'student'
                       ? 'border-blue-500 bg-blue-50'
                       : 'border-gray-200 bg-white hover:border-gray-300'
                   }`}
                 >
-                  <BookOpen className={`w-8 h-8 mx-auto mb-3 ${userType === 'student' ? 'text-blue-600' : 'text-gray-600'}`} />
-                  <p className='font-semibold text-gray-900'>Student</p>
+                  <BookOpen className={`w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 sm:mb-3 ${userType === 'student' ? 'text-blue-600' : 'text-gray-600'}`} />
+                  <p className='font-semibold text-gray-900 text-sm sm:text-base'>Student</p>
                   <p className='text-xs text-gray-600 mt-1'>Join & track skills</p>
                 </button>
 
@@ -150,14 +445,14 @@ const Signup = () => {
                     setUserType('educator');
                     setFormData(prev => ({ ...prev, course: '', yearLevel: '' }));
                   }}
-                  className={`p-6 rounded-lg border-2 transition-all ${
+                  className={`p-4 sm:p-6 rounded-lg border-2 transition-all ${
                     userType === 'educator'
                       ? 'border-blue-500 bg-blue-50'
                       : 'border-gray-200 bg-white hover:border-gray-300'
                   }`}
                 >
-                  <Users className={`w-8 h-8 mx-auto mb-3 ${userType === 'educator' ? 'text-blue-600' : 'text-gray-600'}`} />
-                  <p className='font-semibold text-gray-900'>Educator</p>
+                  <Users className={`w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 sm:mb-3 ${userType === 'educator' ? 'text-blue-600' : 'text-gray-600'}`} />
+                  <p className='font-semibold text-gray-900 text-sm sm:text-base'>Educator</p>
                   <p className='text-xs text-gray-600 mt-1'>Join & track skills</p>
                 </button>
               </div>
@@ -318,7 +613,7 @@ const Signup = () => {
                 className='w-4 h-4 accent-blue-600 cursor-pointer'
               />
               <label htmlFor="terms" className='text-sm text-gray-600'>
-                I agree to the <a href="#" className='text-blue-600 hover:underline'>Terms of Service</a> and <a href="#" className='text-blue-600 hover:underline'>Privacy Policy</a>
+                I agree to the <button type="button" onClick={() => setShowTermsModal(true)} className='text-blue-600 hover:underline'>Terms of Service</button> and <button type="button" onClick={() => setShowPrivacyModal(true)} className='text-blue-600 hover:underline'>Privacy Policy</button>
               </label>
             </div>
             {errors.terms && <p className='text-red-500 text-xs'>{errors.terms}</p>}
@@ -331,11 +626,15 @@ const Signup = () => {
             </button>
 
             <div className='text-center text-gray-600'>
-              Already have an account? <a href='/login' className='text-blue-600 hover:underline font-medium'>Sign in</a>
+              Already have an account? <Link to='/login' className='text-blue-600 hover:underline font-medium'>Sign in</Link>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      {showTermsModal && <TermsModal />}
+      {showPrivacyModal && <PrivacyModal />}
     </div>
   );
 };

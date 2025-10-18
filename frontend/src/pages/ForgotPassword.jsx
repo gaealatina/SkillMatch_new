@@ -7,7 +7,8 @@ import {
   CheckCircle, 
   AlertCircle,
   Eye,
-  EyeOff
+  EyeOff,
+  Menu
 } from 'lucide-react';
 import logo from '../assets/logo.png';
 
@@ -48,7 +49,7 @@ const OTPInput = ({ value, onChange, length = 6, error }) => {
             }
           }}
           onKeyDown={(e) => handleKeyDown(index, e)}
-          className={`w-12 h-12 text-center text-lg font-semibold border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+          className={`w-10 h-10 sm:w-12 sm:h-12 text-center text-base sm:text-lg font-semibold border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
             error 
               ? 'border-red-500 bg-red-50' 
               : value[index] 
@@ -411,15 +412,15 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-10">
-        <div className="flex justify-between items-center p-6">
+        <div className="flex justify-between items-center p-4 sm:p-6">
           <Link to="/" className="flex items-center gap-2">
             <img src={logo} alt="SkillMatch Logo" className="w-8 h-8" />
-            <span className="text-xl font-semibold text-gray-900">SkillMatch</span>
+            <span className="text-lg sm:text-xl font-semibold text-gray-900">SkillMatch</span>
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-4">
             <Link to="/login" className="text-gray-600 hover:text-gray-900">
               Login
             </Link>
@@ -430,20 +431,24 @@ export default function ForgotPassword() {
               Sign Up
             </Link>
           </div>
+          {/* Mobile Menu Button */}
+          <button className="sm:hidden p-2 text-gray-600 hover:text-gray-900">
+            <Menu size={20} />
+          </button>
         </div>
       </div>
 
       {/* Left Side - Form */}
-      <div className="flex-1 flex items-center justify-center p-8">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-2xl shadow-lg p-8">
+          <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-8">
             <div className="text-center mb-8">
               <div className="flex items-center justify-center gap-2 mb-4">
                 <img src={logo} alt="SkillMatch Logo" className="w-8 h-8" />
                 <span className="text-xl font-semibold text-gray-900">SkillMatch</span>
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Reset your password</h1>
-              <p className="text-gray-600">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Reset your password</h1>
+              <p className="text-sm sm:text-base text-gray-600">
                 {currentStep === 1 && 'Enter your email to receive a verification code.'}
                 {currentStep === 2 && 'Enter the 6-digit code sent to your email.'}
                 {currentStep === 3 && 'Create a new secure password.'}
@@ -485,7 +490,7 @@ export default function ForgotPassword() {
                 <div className="text-center">
                   <Link
                     to="/login"
-                    className="text-gray-600 hover:text-gray-900 flex items-center justify-center gap-1"
+                    className="text-gray  -600 hover:text-gray-900 flex items-center justify-center gap-1"
                   >
                     <ArrowLeft size={16} />
                     Back to Login
@@ -512,8 +517,8 @@ export default function ForgotPassword() {
         </div>
       </div>
 
-      {/* Right Side - Progress & Info */}
-      <div className="flex-1 bg-gradient-to-br from-blue-600 to-teal-600 flex items-center justify-center p-8 relative overflow-hidden">
+      {/* Right Side - Progress & Info - Desktop */}
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-blue-600 to-teal-600 items-center justify-center p-8 relative overflow-hidden">
         <div className="relative z-10 text-white">
           <h2 className="text-4xl font-bold mb-4">Secure Account Recovery</h2>
           <p className="text-xl mb-12 text-blue-100">
@@ -552,6 +557,28 @@ export default function ForgotPassword() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Mobile Progress Indicator */}
+      <div className="lg:hidden bg-gradient-to-r from-blue-600 to-teal-600 text-white p-4">
+        <div className="text-center mb-4">
+          <h2 className="text-lg font-bold">Step {currentStep} of 4</h2>
+          <p className="text-sm text-blue-100">{steps[currentStep - 1]?.title}</p>
+        </div>
+        <div className="flex justify-center space-x-2">
+          {steps.map((step, index) => (
+            <div
+              key={step.id}
+              className={`w-3 h-3 rounded-full transition-colors ${
+                currentStep === step.id
+                  ? 'bg-white'
+                  : currentStep > step.id
+                  ? 'bg-blue-400'
+                  : 'bg-blue-300'
+              }`}
+            />
+          ))}
         </div>
       </div>
     </div>

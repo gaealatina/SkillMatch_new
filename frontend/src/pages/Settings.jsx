@@ -4,6 +4,7 @@ import { Eye, EyeOff, Trash2 } from 'lucide-react';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('account');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showPasswords, setShowPasswords] = useState({
     current: false,
     new: false,
@@ -19,21 +20,21 @@ export default function Settings() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardNav userName="Alex Rivera" />
+      <DashboardNav userName="Alex Rivera" isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
 
        
 
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Settings Card */}
         <section className="bg-white rounded-2xl shadow-sm border border-gray-200">
           {/* Header */}
-          <div className="p-6 border-b border-gray-100">
-            <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-            <p className="text-gray-600 mt-1">Manage your account preferences and application settings</p>
+          <div className="p-4 sm:p-6 border-b border-gray-100">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Settings</h1>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">Manage your account preferences and application settings</p>
           </div>
           {/* Settings Tabs */}
-        <div className="px-6 pt-6 flex justify-start" style={{ padding:'20px' }}>
-             <div className="inline-flex bg-gray-100 rounded-full justify-start gap-4" style={{ height: '36px', padding: '3.5px 56.75px' }}>
+          <div className="px-4 sm:px-6 pt-4 sm:pt-6">
+            <div className="inline-flex bg-gray-100 rounded-full justify-start gap-1 sm:gap-4 p-1 w-full sm:w-auto overflow-x-auto">
               <SettingsTab active={activeTab === 'account'} onClick={() => setActiveTab('account')}>
                 Account
               </SettingsTab>
@@ -50,7 +51,7 @@ export default function Settings() {
           </div>
 
           {/* Tab Content */}
-          <div className="p-6" style={{ margin:'20px',  }}>
+          <div className="p-4 sm:p-6">
             {activeTab === 'account' && <AccountSettings showPasswords={showPasswords} togglePasswordVisibility={togglePasswordVisibility} />}
             {activeTab === 'appearance' && <AppearanceSettings />}
             {activeTab === 'notifications' && <NotificationSettings />}
@@ -66,21 +67,11 @@ function SettingsTab({ children, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`transition flex items-center justify-center ${
+      className={`transition flex items-center justify-center text-xs sm:text-sm font-medium px-3 sm:px-4 py-2 rounded-full whitespace-nowrap ${
         active 
-          ? 'bg-white text-gray-900 shadow-sm font-medium' 
+          ? 'bg-white text-gray-900 shadow-sm' 
           : 'text-gray-600 hover:text-gray-900'
       }`}
-      style={{ 
-        fontSize: '14px',
-        borderRadius: '16px',
-        paddingTop: '3.5px', 
-        paddingBottom: '3.5px', 
-        paddingLeft: '16px', 
-        paddingRight: '16px',
-        height: '29px',
-        minWidth: '59px'
-      }}
     >
       {children}
     </button>
@@ -89,9 +80,9 @@ function SettingsTab({ children, active, onClick }) {
 
 function AccountSettings({ showPasswords, togglePasswordVisibility }) {
   return (
-    <div className="space-y-8 flex flex-col items-start">
+    <div className="space-y-6 sm:space-y-8 w-full">
       {/* Account Information */}
-      <div style={{ width: '832px' }}>
+      <div className="w-full">
         <h3 className="text-lg font-semibold text-gray-900 mb-2">Account Information</h3>
         <p className="text-sm text-gray-600 mb-6">Update your email address and password</p>
         
@@ -176,7 +167,7 @@ function AccountSettings({ showPasswords, togglePasswordVisibility }) {
       </div>
 
       {/* Danger Zone */}
-      <div className="border border-red-200 rounded-lg p-5 bg-red-50" style={{ width: '832px' }}>
+      <div className="border border-red-200 rounded-lg p-4 sm:p-5 bg-red-50 w-full">
         <h3 className="text-lg font-semibold text-red-900 mb-2">Danger Zone</h3>
         <p className="text-sm text-red-700 mb-4">Irreversible account actions</p>
         <button className="flex items-center gap-2 bg-red-600 text-white py-2.5 px-4 rounded-lg hover:bg-red-700 transition text-sm font-medium">

@@ -68,6 +68,7 @@ export default function RoleHistory() {
   const [projects, setProjects] = useState(projectData);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, projectId: null, projectTitle: '' });
   const [addModal, setAddModal] = useState({ isOpen: false });
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     role: '',
@@ -219,7 +220,7 @@ export default function RoleHistory() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardNav userName="Alex Rivera" />
+      <DashboardNav userName="Alex Rivera" isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}

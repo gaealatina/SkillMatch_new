@@ -72,10 +72,11 @@ const roleHistory = [
 export default function Profile() {
   const [activeTab, setActiveTab] = useState('skills');
   const [showAddSkill, setShowAddSkill] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardNav userName="Alex Rivera" />
+      <DashboardNav userName="Alex Rivera" isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         {/* Header Card */}

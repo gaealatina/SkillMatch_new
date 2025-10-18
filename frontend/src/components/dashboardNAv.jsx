@@ -1,5 +1,5 @@
 import { NavLink, Link } from 'react-router-dom';
-import { Settings } from 'lucide-react';
+import { Settings, Menu, X } from 'lucide-react';
 import logo from '../assets/logo.png';
 
 const baseLinkClass =
@@ -22,6 +22,8 @@ export default function DashboardNav({
     { to: '/roles', label: 'Role History' },
     { to: '/suggestions', label: 'Suggestions' },
   ],
+  isMobileMenuOpen = false,
+  setIsMobileMenuOpen = () => {},
 }) {
   const initials = getInitials(userName);
 
@@ -42,7 +44,7 @@ export default function DashboardNav({
           </div>
         </Link>
 
-        {/* Center: Nav links */}
+        {/* Center: Nav links - Desktop */}
         <nav className="hidden md:flex items-center gap-2">
           {links.map(link => (
             <NavLink
@@ -55,19 +57,80 @@ export default function DashboardNav({
           ))}
         </nav>
 
-        {/* Right: Settings and User */}
+        {/* Right: Desktop Settings, User, and Mobile Menu Button */}
         <div className="flex items-center gap-4">
-          <Link to="/settings" className="text-gray-600 hover:text-[#14B8A6]">
-            <Settings size={18} />
-          </Link>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-semibold grid place-items-center">
-              {initials || 'U'}
+          {/* Desktop Settings and User - Hidden on mobile */}
+          <div className="hidden md:flex items-center gap-4">
+            <Link to="/settings" className="text-gray-600 hover:text-[#14B8A6]">
+              <Settings size={18} />
+            </Link>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-semibold grid place-items-center">
+                {initials || 'U'}
+              </div>
+              <span className="text-sm text-gray-800">{userName}</span>
             </div>
-            <span className="hidden sm:inline text-sm text-gray-800">{userName}</span>
           </div>
+          
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden bg-white border-t border-gray-200 px-4 py-4">
+          <div className="flex flex-col space-y-3">
+            {/* Navigation Links */}
+            {links.map(link => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) => 
+                  `text-sm font-medium py-2 px-3 rounded-lg transition-colors ${
+                    isActive 
+                      ? 'bg-blue-100 text-blue-700' 
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`
+                }
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {link.label}
+              </NavLink>
+            ))}
+            
+            {/* Divider */}
+            <div className="border-t border-gray-200 my-2"></div>
+            
+            {/* Settings and User Account */}
+            <div className="space-y-2">
+              <Link
+                to="/settings"
+                className="flex items-center gap-3 text-sm font-medium py-2 px-3 rounded-lg transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Settings size={18} />
+                Settings
+              </Link>
+              
+              <div className="flex items-center gap-3 py-2 px-3">
+                <div className="w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-semibold grid place-items-center">
+                  {initials || 'U'}
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-gray-900">{userName}</span>
+                  <span className="text-xs text-gray-500">Account</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

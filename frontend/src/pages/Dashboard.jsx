@@ -1,5 +1,6 @@
 import DashboardNav from '../components/dashboardNAv';
-import { ArrowRight, Gift, Award, Activity, Clock, History } from 'lucide-react';
+import { ArrowRight, Gift, Award, Activity, Clock, History, Menu } from 'lucide-react';
+import { useState } from 'react';
 
 const skills = [
   { name: 'JavaScript', tag: 'Programming', level: 85, label: 'Expert' },
@@ -19,9 +20,11 @@ const recent = [
 ];
 
 export default function Dashboard() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardNav userName="Alex Rivera" />
+      <DashboardNav userName="Alex Rivera" isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <header className="mb-6">
