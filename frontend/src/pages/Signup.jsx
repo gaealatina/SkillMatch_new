@@ -26,7 +26,10 @@ const Signup = () => {
 
   const validateFirstName = (value) => /^[a-zA-Z\s]*$/.test(value);
   const validateLastName = (value) => /^[a-zA-Z\s]*$/.test(value);
-  const validateEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  const validateEmail = (value) => {
+    const phinmaEmailRegex = /^[^\s@]+@(phinmaed\.com|phinma\.edu\.com)$/i;
+    return phinmaEmailRegex.test(value);
+  };
   const validateID = (value) => /^\d{2}-\d{4}-\d{6}$/.test(value);
   const validatePassword = (value) => {
     const hasMinLength = value.length >= 8;
@@ -451,7 +454,7 @@ const Signup = () => {
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     errors.email ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder='example@gmail.com'
+                  placeholder='your.email@university.edu'
                 />
                 {errors.email && <p className='text-red-500 text-xs mt-1'>{errors.email}</p>}
               </div>
