@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import girl2 from '../assets/girl2.png';
 import logo from '../assets/logo.png';
 import googleLogo from '../assets/googleLogo.png'; 
@@ -115,9 +116,9 @@ const Login = () => {
 
             {/* Forgot Password */}
             <div className="flex justify-end">
-              <a href="#" className="text-sm text-blue-600 hover:text-blue-700">
+              <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700">
                 Forgot Password?
-              </a>
+              </Link>
             </div>
 
             {/* Login Button */}
