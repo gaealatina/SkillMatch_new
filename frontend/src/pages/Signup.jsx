@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, Users, Zap, X, CheckCircle, Shield, Eye, Lock, Database, Mail, Menu } from 'lucide-react';
+import { BookOpen, Users, Zap, X, CheckCircle, Shield, Eye, EyeOff, Lock, Database, Mail, Menu } from 'lucide-react';
 import logo from '../assets/logo.png';
 
 const Signup = () => {
@@ -23,6 +23,8 @@ const Signup = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const validateFirstName = (value) => /^[a-zA-Z\s]*$/.test(value);
   const validateLastName = (value) => /^[a-zA-Z\s]*$/.test(value);
@@ -479,30 +481,48 @@ const Signup = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className='block text-sm font-medium text-gray-900 mb-2'>Password *</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.password ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder='••••••••'
-                />
+                <div className='relative'>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      errors.password ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder='••••••••'
+                  />
+                  <button
+                    type='button'
+                    onClick={() => setShowPassword(!showPassword)}
+                    className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600'
+                  >
+                    {showPassword ? <Eye size={18} /> : <Lock size={18} />}
+                  </button>
+                </div>
                 {errors.password && <p className='text-red-500 text-xs mt-1'>{errors.password}</p>}
               </div>
               <div>
                 <label className='block text-sm font-medium text-gray-900 mb-2'>Confirm Password *</label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder='••••••••'
-                />
+                <div className='relative'>
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder='••••••••'
+                  />
+                  <button
+                    type='button'
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600'
+                  >
+                    {showConfirmPassword ? <Eye size={18} /> : <Lock size={18} />}
+                  </button>
+                </div>
                 {errors.confirmPassword && <p className='text-red-500 text-xs mt-1'>{errors.confirmPassword}</p>}
               </div>
             </div>
