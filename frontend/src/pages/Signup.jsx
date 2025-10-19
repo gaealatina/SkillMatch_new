@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, Users, Zap, X, CheckCircle, Shield, Eye, EyeOff, Lock, Database, Mail, Menu } from 'lucide-react';
+import { BookOpen, Users, Zap, X, CheckCircle, Shield, Eye, EyeOff, Database, Mail, Menu } from 'lucide-react';
 import logo from '../assets/logo.png';
 
 const Signup = () => {
@@ -323,40 +323,40 @@ const Signup = () => {
   );
 
   return (
-    <div className="min-h-screen bg-white">
-      <nav className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 sticky top-0 z-50">
+    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+      <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4 sticky top-0 z-50 transition-colors duration-300">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className='flex items-center gap-2'>
             <img src={logo} alt="logo" className='w-8 h-8 sm:w-10 sm:h-10'/>
-            <span className="text-lg sm:text-xl font-semibold text-gray-900">SkillMatch</span>
+            <span className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">SkillMatch</span>
           </div>
           
           <div className='hidden md:flex items-center gap-6'>
-            <Link to="/" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Back</Link>
-            <Link to="/login" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium">Sign In</Link>
+            <Link to="/" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm font-medium transition-colors">Back</Link>
+            <Link to="/login" className="bg-blue-600 text-white px-4 py-2 rounded-2xl hover:bg-blue-700 transition text-sm font-medium">Sign In</Link>
           </div>
 
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            className="md:hidden p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
             <Menu size={24} />
           </button>
         </div>
 
         {isMobileMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t border-gray-200">
+          <div className="md:hidden mt-4 pb-4 border-t border-gray-200 dark:border-gray-700">
             <div className="flex flex-col space-y-3 pt-4">
               <Link 
                 to="/" 
-                className="text-gray-600 hover:text-gray-900 text-sm font-medium py-2 px-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm font-medium py-2 px-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Back
               </Link>
               <Link 
                 to="/login" 
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium text-center"
+                className="bg-blue-600 text-white px-4 py-2 rounded-2xl hover:bg-blue-700 transition text-sm font-medium text-center"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Sign In
@@ -366,20 +366,20 @@ const Signup = () => {
         )}
       </nav>
 
-      <div className='flex justify-center items-center min-h-screen px-4 py-4 sm:py-8 bg-gray-50'>
-        <div className='bg-white p-4 sm:p-8 rounded-2xl shadow-lg w-full max-w-2xl'>
-          <h2 className='text-xl sm:text-2xl font-bold mb-2 text-center text-gray-900'>Create your account</h2>
-          <p className='text-center text-sm sm:text-base text-gray-600 mb-6 sm:mb-8'>Join SkillMatch to start mapping your skills and tracking your progress</p>
+      <div className='flex justify-center items-center min-h-screen px-4 py-4 sm:py-8 bg-gray-50 dark:bg-gray-800 transition-colors duration-300'>
+        <div className='bg-white dark:bg-gray-700 p-4 sm:p-8 rounded-2xl shadow-lg w-full max-w-2xl transition-colors duration-300'>
+          <h2 className='text-xl sm:text-2xl font-bold mb-2 text-center text-gray-900 dark:text-white'>Create your account</h2>
+          <p className='text-center text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-6 sm:mb-8'>Join SkillMatch to start mapping your skills and tracking your progress</p>
 
           {serverError && (
-            <div className='mb-6 p-4 bg-red-50 border border-red-200 rounded-lg'>
-              <p className='text-red-800 text-sm font-medium'>{serverError}</p>
+            <div className='mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg'>
+              <p className='text-red-800 dark:text-red-300 text-sm font-medium'>{serverError}</p>
             </div>
           )}
 
           <div className='space-y-6'>
             <div>
-              <p className='text-sm font-medium text-gray-900 mb-4'>I am a:</p>
+              <p className='text-sm font-medium text-gray-900 dark:text-gray-300 mb-4'>I am a:</p>
               <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4'>
                 <button
                   onClick={() => {
@@ -393,8 +393,8 @@ const Signup = () => {
                   }`}
                 >
                   <BookOpen className={`w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 sm:mb-3 ${userType === 'student' ? 'text-blue-600' : 'text-gray-600'}`} />
-                  <p className='font-semibold text-gray-900 text-sm sm:text-base'>Student</p>
-                  <p className='text-xs text-gray-600 mt-1'>Join & track skills</p>
+                  <p className='font-semibold text-gray-900 dark:text-white text-sm sm:text-base'>Student</p>
+                  <p className='text-xs text-gray-600 dark:text-gray-300 mt-1'>Join & track skills</p>
                 </button>
 
                 <button
@@ -409,8 +409,8 @@ const Signup = () => {
                   }`}
                 >
                   <Users className={`w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 sm:mb-3 ${userType === 'educator' ? 'text-blue-600' : 'text-gray-600'}`} />
-                  <p className='font-semibold text-gray-900 text-sm sm:text-base'>Educator</p>
-                  <p className='text-xs text-gray-600 mt-1'>Join & track skills</p>
+                  <p className='font-semibold text-gray-900 dark:text-white text-sm sm:text-base'>Educator</p>
+                  <p className='text-xs text-gray-600 dark:text-gray-300 mt-1'>Join & track skills</p>
                 </button>
               </div>
               {errors.userType && <p className='text-red-500 text-xs mt-2'>{errors.userType}</p>}
@@ -418,28 +418,28 @@ const Signup = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className='block text-sm font-medium text-gray-900 mb-2'>First Name*</label>
+                <label className='block text-sm font-medium text-gray-900 dark:text-gray-300 mb-2'>First Name*</label>
                 <input
                   type="text"
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.firstName ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-4 py-3 text-gray-900 dark:text-white bg-white dark:bg-gray-800 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    errors.firstName ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
                   placeholder='Juan'
                 />
                 {errors.firstName && <p className='text-red-500 text-xs mt-1'>{errors.firstName}</p>}
               </div>
               <div>
-                <label className='block text-sm font-medium text-gray-900 mb-2'>Last Name *</label>
+                <label className='block text-sm font-medium text-gray-900 dark:text-gray-300 mb-2'>Last Name *</label>
                 <input
                   type="text"
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.lastName ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-4 py-3 text-gray-900 dark:text-white bg-white dark:bg-gray-800 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    errors.lastName ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
                   placeholder='Dela Cruz'
                 />
@@ -447,14 +447,14 @@ const Signup = () => {
               </div>
 
               <div>
-                <label className='block text-sm font-medium text-gray-900 mb-2'>Email *</label>
+                <label className='block text-sm font-medium text-gray-900 dark:text-gray-300 mb-2'>Email *</label>
                 <input
                   type="text"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.email ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-4 py-3 text-gray-900 dark:text-white bg-white dark:bg-gray-800 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
                   placeholder='example@gmail.com'
                 />
@@ -462,15 +462,15 @@ const Signup = () => {
               </div>
 
               <div>
-                <label className='block text-sm font-medium text-gray-900 mb-2'>ID *</label>
+                <label className='block text-sm font-medium text-gray-900 dark:text-gray-300 mb-2'>ID *</label>
                 <input
                   type="text"
                   name="id"
                   value={formData.id}
                   onChange={handleInputChange}
                   maxLength="14"
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.id ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-4 py-3 text-gray-900 dark:text-white bg-white dark:bg-gray-800 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    errors.id ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
                   placeholder='00-0000-000000'
                 />
@@ -480,15 +480,15 @@ const Signup = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className='block text-sm font-medium text-gray-900 mb-2'>Password *</label>
+                <label className='block text-sm font-medium text-gray-900 dark:text-gray-300 mb-2'>Password *</label>
                 <div className='relative'>
                   <input
                     type={showPassword ? 'text' : 'password'}
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.password ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-4 py-3 pr-10 text-gray-900 dark:text-white bg-white dark:bg-gray-800 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      errors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
                     placeholder='••••••••'
                   />
@@ -497,21 +497,21 @@ const Signup = () => {
                     onClick={() => setShowPassword(!showPassword)}
                     className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600'
                   >
-                    {showPassword ? <Eye size={18} /> : <Lock size={18} />}
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
                 {errors.password && <p className='text-red-500 text-xs mt-1'>{errors.password}</p>}
               </div>
               <div>
-                <label className='block text-sm font-medium text-gray-900 mb-2'>Confirm Password *</label>
+                <label className='block text-sm font-medium text-gray-900 dark:text-gray-300 mb-2'>Confirm Password *</label>
                 <div className='relative'>
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-4 py-3 pr-10 text-gray-900 dark:text-white bg-white dark:bg-gray-800 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      errors.confirmPassword ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
                     placeholder='••••••••'
                   />
@@ -520,7 +520,7 @@ const Signup = () => {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600'
                   >
-                    {showConfirmPassword ? <Eye size={18} /> : <Lock size={18} />}
+                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
                 {errors.confirmPassword && <p className='text-red-500 text-xs mt-1'>{errors.confirmPassword}</p>}
@@ -530,13 +530,13 @@ const Signup = () => {
             {userType === 'student' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className='block text-sm font-medium text-gray-900 mb-2'>Course *</label>
+                  <label className='block text-sm font-medium text-gray-900 dark:text-gray-300 mb-2'>Course *</label>
                   <select
                     name="course"
                     value={formData.course}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 ${
-                      errors.course ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${
+                      errors.course ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
                   >
                     <option value="">Select course</option>
@@ -550,14 +550,14 @@ const Signup = () => {
                 </div>
 
                 <div>
-                  <label className='block text-sm font-medium text-gray-900 mb-2'>Year Level *</label>
+                  <label className='block text-sm font-medium text-gray-900 dark:text-gray-300 mb-2'>Year Level *</label>
                   <select
                     name="yearLevel"
                     value={formData.yearLevel}
                     onChange={handleInputChange}
                     disabled={!formData.course}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 ${
-                      errors.yearLevel ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${
+                      errors.yearLevel ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     } ${!formData.course ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <option value="">Select year</option>
@@ -587,8 +587,8 @@ const Signup = () => {
                 onChange={(e) => setTermsAccepted(e.target.checked)}
                 className='w-4 h-4 accent-blue-600 cursor-pointer'
               />
-              <label htmlFor="terms" className='text-sm text-gray-600'>
-                I agree to the <button type="button" onClick={() => setShowTermsModal(true)} className='text-blue-600 hover:underline'>Terms of Service</button> and <button type="button" onClick={() => setShowPrivacyModal(true)} className='text-blue-600 hover:underline'>Privacy Policy</button>
+              <label htmlFor="terms" className='text-sm text-gray-600 dark:text-gray-300'>
+                I agree to the <button type="button" onClick={() => setShowTermsModal(true)} className='text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300'>Terms of Service</button> and <button type="button" onClick={() => setShowPrivacyModal(true)} className='text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300'>Privacy Policy</button>
               </label>
             </div>
             {errors.terms && <p className='text-red-500 text-xs'>{errors.terms}</p>}
@@ -596,13 +596,13 @@ const Signup = () => {
             <button
               onClick={handleSubmit}
               disabled={isLoading}
-              className={`w-full ${isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white font-semibold py-3 rounded-lg transition-colors duration-200 mt-8`}
+              className={`w-full ${isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white font-semibold py-3 rounded-2xl transition-colors duration-200 mt-8`}
             >
               {isLoading ? 'Creating account...' : 'Create account'}
             </button>
 
-            <div className='text-center text-gray-600'>
-              Already have an account? <Link to='/login' className='text-blue-600 hover:underline font-medium'>Sign in</Link>
+            <div className='text-center text-gray-600 dark:text-gray-300'>
+              Already have an account? <Link to='/login' className='text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300 font-medium'>Sign in</Link>
             </div>
           </div>
         </div>

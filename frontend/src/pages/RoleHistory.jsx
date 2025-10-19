@@ -9,7 +9,8 @@ import {
   Trash2,
   User,
   X,
-  Briefcase
+  Briefcase,
+  Edit3
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '../contexts/ThemeContext';
@@ -72,6 +73,7 @@ export default function RoleHistory() {
   const [projects, setProjects] = useState(projectData);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, projectId: null, projectTitle: '' });
   const [addModal, setAddModal] = useState({ isOpen: false });
+  const [editModal, setEditModal] = useState({ isOpen: false, projectId: null });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -142,6 +144,37 @@ export default function RoleHistory() {
 
   const handleDeleteCancel = () => {
     setDeleteModal({ isOpen: false, projectId: null, projectTitle: '' });
+  };
+
+  const handleEditClick = (projectId) => {
+    const project = projects.find(p => p.id === projectId);
+    if (project) {
+      setFormData({
+        title: project.title,
+        role: project.role,
+        teamMembers: project.teamMembers.join(', '),
+        skills: project.skills.join(', '),
+        performance: project.performance.toString(),
+        date: project.date,
+        notes: project.notes
+      });
+      setEditModal({ isOpen: true, projectId });
+      setFormErrors({});
+    }
+  };
+
+  const handleEditCancel = () => {
+    setEditModal({ isOpen: false, projectId: null });
+    setFormData({
+      title: '',
+      role: '',
+      teamMembers: '',
+      skills: '',
+      performance: '',
+      date: '',
+      notes: ''
+    });
+    setFormErrors({});
   };
 
   const handleAddProjectClick = () => {
@@ -230,6 +263,36 @@ export default function RoleHistory() {
     });
   };
 
+  const handleEditSubmit = (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    const updatedProject = {
+      id: editModal.projectId,
+      title: formData.title.trim(),
+      role: formData.role.trim(),
+      teamSize: formData.teamMembers.trim() ? formData.teamMembers.split(',').length : 0,
+      skills: formData.skills.trim() ? formData.skills.split(',').map(s => s.trim()) : [],
+      performance: parseInt(formData.performance),
+      date: formData.date.trim(),
+      teamMembers: formData.teamMembers.trim() ? formData.teamMembers.split(',').map(m => m.trim()) : [],
+      notes: formData.notes.trim(),
+      expanded: false
+    };
+
+    setProjects(projects.map(project => 
+      project.id === editModal.projectId ? updatedProject : project
+    ));
+    handleEditCancel();
+    
+    toast.success(`Project "${updatedProject.title}" updated successfully!`, {
+      description: 'Your project details have been updated.'
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <DashboardNav 
@@ -274,7 +337,7 @@ export default function RoleHistory() {
           <div className="flex justify-end mb-6">
             <button 
               onClick={handleAddProjectClick}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-[12px] hover:bg-primary/90 transition-colors"
             >
               <Plus size={16} />
               Add Project
@@ -323,7 +386,7 @@ export default function RoleHistory() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Skills Used</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Performance</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider w-12"></th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider w-20">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-card divide-y divide-border">
@@ -369,12 +432,22 @@ export default function RoleHistory() {
                         <div className="text-sm text-card-foreground">{project.date}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <button 
-                          onClick={() => handleDeleteClick(project.id, project.title)}
-                          className="text-muted-foreground hover:text-destructive transition-colors"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={() => handleEditClick(project.id)}
+                            className="text-muted-foreground hover:text-primary transition-colors"
+                            title="Edit project"
+                          >
+                            <Edit3 size={16} />
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteClick(project.id, project.title)}
+                            className="text-muted-foreground hover:text-destructive transition-colors"
+                            title="Delete project"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </td>
                     </tr>,
                     // Expanded Details Row
@@ -387,7 +460,7 @@ export default function RoleHistory() {
                               <h4 className="text-sm font-medium text-card-foreground mb-3">Team Members</h4>
                               <div className="flex flex-wrap gap-3">
                                 {project.teamMembers.map((member, index) => (
-                                  <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground bg-card px-3 py-2 rounded-lg border border-border">
+                                  <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground bg-card px-3 py-2 rounded-full border border-border">
                                     <User size={14} />
                                     <span>{member}</span>
                                   </div>
@@ -410,7 +483,7 @@ export default function RoleHistory() {
                             {/* Project Notes */}
                             <div>
                               <h4 className="text-sm font-medium text-card-foreground mb-3">Project Notes</h4>
-                              <p className="text-sm text-muted-foreground bg-card p-4 rounded-lg border border-border">{project.notes}</p>
+                              <p className="text-sm text-muted-foreground bg-card p-4 rounded-[12px] border border-border">{project.notes}</p>
                             </div>
                           </div>
                         </td>
@@ -431,23 +504,23 @@ export default function RoleHistory() {
           <div className="absolute inset-0 bg-black bg-opacity-75" onClick={handleDeleteCancel}></div>
           
           {/* Modal Dialog */}
-          <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+          <div className="relative bg-white dark:bg-gray-800 rounded-[12px] shadow-xl max-w-md w-full mx-4 transition-colors duration-300">
             <div className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Delete Project</h3>
-              <p className="text-sm text-gray-600 mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Delete Project</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
                 Are you sure you want to delete this project? This action cannot be undone and will permanently remove the project from your history.
               </p>
               
               <div className="flex justify-end space-x-3">
                 <button
                   onClick={handleDeleteCancel}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-[8px] hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-[8px] hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
                 >
                   Delete
                 </button>
@@ -464,14 +537,14 @@ export default function RoleHistory() {
           <div className="absolute inset-0 bg-black bg-opacity-75" onClick={handleAddProjectCancel}></div>
           
           {/* Modal Dialog */}
-          <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="relative bg-white dark:bg-gray-800 rounded-[12px] shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto transition-colors duration-300">
             <div className="p-6">
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">Add Past Project</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Add Past Project</h3>
                 <button
                   onClick={handleAddProjectCancel}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
                 >
                   <X size={20} />
                 </button>
@@ -482,7 +555,7 @@ export default function RoleHistory() {
                 {/* Project Title and Role Row */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Project Title <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -491,8 +564,8 @@ export default function RoleHistory() {
                       value={formData.title}
                       onChange={handleInputChange}
                       placeholder="E-Commerce Platform"
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        formErrors.title ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white bg-white dark:bg-gray-700 ${
+                        formErrors.title ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                     />
                     {formErrors.title && (
@@ -501,7 +574,7 @@ export default function RoleHistory() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Your Role <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -510,8 +583,8 @@ export default function RoleHistory() {
                       value={formData.role}
                       onChange={handleInputChange}
                       placeholder="Frontend Developer"
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        formErrors.role ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white bg-white dark:bg-gray-700 ${
+                        formErrors.role ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                     />
                     {formErrors.role && (
@@ -522,7 +595,7 @@ export default function RoleHistory() {
 
                 {/* Team Members */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Team Members (comma-separated)
                   </label>
                   <input
@@ -531,13 +604,13 @@ export default function RoleHistory() {
                     value={formData.teamMembers}
                     onChange={handleInputChange}
                     placeholder="John Doe, Jane Smith"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white bg-white dark:bg-gray-700"
                   />
                 </div>
 
                 {/* Skills Used */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Skills Used (comma-separated)
                   </label>
                   <input
@@ -546,14 +619,14 @@ export default function RoleHistory() {
                     value={formData.skills}
                     onChange={handleInputChange}
                     placeholder="React, JavaScript, CSS"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white bg-white dark:bg-gray-700"
                   />
                 </div>
 
                 {/* Performance Score and Completion Date Row */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Performance Score (0-100) <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -564,8 +637,8 @@ export default function RoleHistory() {
                       placeholder="85"
                       min="0"
                       max="100"
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        formErrors.performance ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white bg-white dark:bg-gray-700 ${
+                        formErrors.performance ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                     />
                     {formErrors.performance && (
@@ -574,7 +647,7 @@ export default function RoleHistory() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Completion Date <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -582,8 +655,8 @@ export default function RoleHistory() {
                       name="date"
                       value={formData.date}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        formErrors.date ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white bg-white dark:bg-gray-700 ${
+                        formErrors.date ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                     />
                     {formErrors.date && (
@@ -594,7 +667,7 @@ export default function RoleHistory() {
 
                 {/* Project Notes */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Project Notes (Optional)
                   </label>
                   <textarea
@@ -603,7 +676,7 @@ export default function RoleHistory() {
                     onChange={handleInputChange}
                     placeholder="Additional details about the project..."
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white bg-white dark:bg-gray-700"
                   />
                 </div>
 
@@ -612,15 +685,187 @@ export default function RoleHistory() {
                   <button
                     type="button"
                     onClick={handleAddProjectCancel}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                   >
                     Add Project
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Project Modal */}
+      {editModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* 75% Black Background Overlay */}
+          <div className="absolute inset-0 bg-black bg-opacity-75" onClick={handleEditCancel}></div>
+          
+          {/* Modal Dialog */}
+          <div className="relative bg-white dark:bg-gray-800 rounded-[12px] shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto transition-colors duration-300">
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Edit Project</h3>
+                <button
+                  onClick={handleEditCancel}
+                  className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleEditSubmit} className="space-y-4">
+                {/* Project Title and Role Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Project Title <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="title"
+                      value={formData.title}
+                      onChange={handleInputChange}
+                      placeholder="E-Commerce Platform"
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white bg-white dark:bg-gray-700 ${
+                        formErrors.title ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                    />
+                    {formErrors.title && (
+                      <p className="text-red-500 text-xs mt-1">{formErrors.title}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Your Role <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="role"
+                      value={formData.role}
+                      onChange={handleInputChange}
+                      placeholder="Frontend Developer"
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white bg-white dark:bg-gray-700 ${
+                        formErrors.role ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                    />
+                    {formErrors.role && (
+                      <p className="text-red-500 text-xs mt-1">{formErrors.role}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Team Members */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Team Members (comma-separated)
+                  </label>
+                  <input
+                    type="text"
+                    name="teamMembers"
+                    value={formData.teamMembers}
+                    onChange={handleInputChange}
+                    placeholder="John Doe, Jane Smith"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white bg-white dark:bg-gray-700"
+                  />
+                </div>
+
+                {/* Skills Used */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Skills Used (comma-separated)
+                  </label>
+                  <input
+                    type="text"
+                    name="skills"
+                    value={formData.skills}
+                    onChange={handleInputChange}
+                    placeholder="React, JavaScript, CSS"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white bg-white dark:bg-gray-700"
+                  />
+                </div>
+
+                {/* Performance Score and Completion Date Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Performance Score (0-100) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      name="performance"
+                      value={formData.performance}
+                      onChange={handleInputChange}
+                      placeholder="85"
+                      min="0"
+                      max="100"
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white bg-white dark:bg-gray-700 ${
+                        formErrors.performance ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                    />
+                    {formErrors.performance && (
+                      <p className="text-red-500 text-xs mt-1">{formErrors.performance}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Completion Date <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      name="date"
+                      value={formData.date}
+                      onChange={handleInputChange}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white bg-white dark:bg-gray-700 ${
+                        formErrors.date ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                    />
+                    {formErrors.date && (
+                      <p className="text-red-500 text-xs mt-1">{formErrors.date}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Project Notes */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Project Notes (Optional)
+                  </label>
+                  <textarea
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleInputChange}
+                    placeholder="Additional details about the project..."
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white bg-white dark:bg-gray-700"
+                  />
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={handleEditCancel}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-[12px] hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-[12px] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                  >
+                    Update Project
                   </button>
                 </div>
               </form>

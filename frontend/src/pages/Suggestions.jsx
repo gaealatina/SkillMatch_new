@@ -273,21 +273,21 @@ export default function Suggestions() {
                 <div className="flex flex-wrap gap-3 pb-6">
                   <button
                     onClick={() => handleStartLearning(rec.skillName)}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-[12px] hover:bg-primary/90 transition-colors"
                   >
                     <CheckCircle size={16} />
                     Start Learning
                   </button>
                   <button
                     onClick={() => handleAddToGoals(rec.skillName)}
-                    className="flex items-center gap-2 px-4 py-2 border border-border text-card-foreground rounded-lg hover:bg-muted transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 border border-border text-card-foreground rounded-[12px] hover:bg-secondary transition-colors"
                   >
                     <Plus size={16} />
                     Add to My Goals
                   </button>
                   <button
                     onClick={() => handleNotInterested(rec.skillName, rec.id)}
-                    className="flex items-center gap-2 px-4 py-2 text-muted-foreground hover:text-card-foreground hover:bg-muted rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 text-muted-foreground hover:text-card-foreground hover:bg-muted outline-2px outline-border rounded-[12px] transition-colors"
                   >
                     <X size={16} />
                     Not Interested

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTheme } from '../contexts/ThemeContext';
+import ThemeToggle from '../components/ThemeToggle';
 import { 
   Mail, 
   Lock, 
@@ -14,6 +16,7 @@ import logo from '../assets/logo.png';
 
 // Custom OTP Input Component
 const OTPInput = ({ value, onChange, length = 6, error }) => {
+  const { isDarkMode } = useTheme();
   const handleChange = (index, digit) => {
     const newValue = value.split('');
     newValue[index] = digit;
@@ -51,10 +54,10 @@ const OTPInput = ({ value, onChange, length = 6, error }) => {
           onKeyDown={(e) => handleKeyDown(index, e)}
           className={`w-10 h-10 sm:w-12 sm:h-12 text-center text-base sm:text-lg font-semibold border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
             error 
-              ? 'border-red-500 bg-red-50' 
+              ? 'border-red-500 bg-red-50 dark:bg-red-900/20 dark:border-red-400' 
               : value[index] 
-                ? 'border-green-500 bg-green-50' 
-                : 'border-gray-300 hover:border-gray-400'
+                ? 'border-green-500 bg-green-50 dark:bg-green-900/20 dark:border-green-400' 
+                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white'
           }`}
         />
       ))}
@@ -63,6 +66,7 @@ const OTPInput = ({ value, onChange, length = 6, error }) => {
 };
 
 export default function ForgotPassword() {
+  const { isDarkMode } = useTheme();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     email: '',
@@ -228,7 +232,7 @@ export default function ForgotPassword() {
         return (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Email Address
               </label>
               <input
@@ -236,8 +240,8 @@ export default function ForgotPassword() {
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 placeholder="your.email@phinmaed.com"
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.email ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white bg-white dark:bg-gray-800 ${
+                  errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                 }`}
               />
               {errors.email && (
@@ -254,19 +258,19 @@ export default function ForgotPassword() {
         return (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Email Address
               </label>
               <input
                 type="email"
                 value={formData.email}
                 disabled
-                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-600"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Verification Code
               </label>
               <OTPInput
@@ -274,7 +278,7 @@ export default function ForgotPassword() {
                 onChange={(value) => handleInputChange('otp', value)}
                 error={errors.otp}
               />
-              <p className="text-sm text-gray-500 mt-2 text-center">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 text-center">
                 Enter the 6-digit code sent to {formData.email}
               </p>
               {errors.otp && (
@@ -289,7 +293,7 @@ export default function ForgotPassword() {
               <button
                 type="button"
                 onClick={handleResendOTP}
-                className="text-sm text-blue-600 hover:text-blue-700 underline"
+                className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline transition-colors"
               >
                 Resend OTP
               </button>
@@ -301,26 +305,26 @@ export default function ForgotPassword() {
         return (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Email Address
               </label>
               <input
                 type="email"
                 value={formData.email}
                 disabled
-                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-600"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Verification Code
               </label>
               <div className="flex gap-2 justify-center">
                 {formData.otp.split('').map((digit, index) => (
                   <div
                     key={index}
-                    className="w-12 h-12 text-center text-lg font-semibold border-2 border-green-500 bg-green-50 rounded-lg flex items-center justify-center"
+                    className="w-12 h-12 text-center text-lg font-semibold border-2 border-green-500 dark:border-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg flex items-center justify-center text-gray-900 dark:text-white"
                   >
                     {digit}
                   </div>
@@ -329,7 +333,7 @@ export default function ForgotPassword() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 New Password
               </label>
               <div className="relative">
@@ -338,19 +342,19 @@ export default function ForgotPassword() {
                   value={formData.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
                   placeholder="Enter your new password"
-                  className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.password ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white bg-white dark:bg-gray-800 ${
+                    errors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Must be at least 8 characters long
               </p>
               {errors.password && (
@@ -362,7 +366,7 @@ export default function ForgotPassword() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Confirm Password
               </label>
               <div className="relative">
@@ -371,14 +375,14 @@ export default function ForgotPassword() {
                   value={formData.confirmPassword}
                   onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
                   placeholder="Confirm your new password"
-                  className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white bg-white dark:bg-gray-800 ${
+                    errors.confirmPassword ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
                 >
                   {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -396,11 +400,11 @@ export default function ForgotPassword() {
       case 4:
         return (
           <div className="text-center space-y-4">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-              <CheckCircle size={32} className="text-green-600" />
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto">
+              <CheckCircle size={32} className="text-green-600 dark:text-green-400" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Password Reset Successful!</h3>
-            <p className="text-gray-600">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Password Reset Successful!</h3>
+            <p className="text-gray-600 dark:text-gray-300">
               Your password has been successfully changed! You can now log in with your new password.
             </p>
           </div>
@@ -412,43 +416,47 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col lg:flex-row transition-colors duration-300">
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-10">
+      <div className="absolute top-0 left-0 right-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
         <div className="flex justify-between items-center p-4 sm:p-6">
           <Link to="/" className="flex items-center gap-2">
             <img src={logo} alt="SkillMatch Logo" className="w-8 h-8" />
-            <span className="text-lg sm:text-xl font-semibold text-gray-900">SkillMatch</span>
+            <span className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">SkillMatch</span>
           </Link>
           <div className="hidden sm:flex items-center gap-4">
-            <Link to="/login" className="text-gray-600 hover:text-gray-900">
+            <ThemeToggle />
+            <Link to="/login" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
               Login
             </Link>
             <Link
               to="/signup"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              className="bg-blue-600 text-white px-4 py-2 rounded-2xl hover:bg-blue-700 transition-colors"
             >
               Sign Up
             </Link>
           </div>
           {/* Mobile Menu Button */}
-          <button className="sm:hidden p-2 text-gray-600 hover:text-gray-900">
-            <Menu size={20} />
-          </button>
+          <div className="sm:hidden flex items-center gap-2">
+            <ThemeToggle />
+            <button className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
+              <Menu size={20} />
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Left Side - Form */}
       <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-8">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-8 transition-colors duration-300">
             <div className="text-center mb-8">
               <div className="flex items-center justify-center gap-2 mb-4">
                 <img src={logo} alt="SkillMatch Logo" className="w-8 h-8" />
-                <span className="text-xl font-semibold text-gray-900">SkillMatch</span>
+                <span className="text-xl font-semibold text-gray-900 dark:text-white">SkillMatch</span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Reset your password</h1>
-              <p className="text-sm sm:text-base text-gray-600">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2">Reset your password</h1>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
                 {currentStep === 1 && 'Enter your email to receive a verification code.'}
                 {currentStep === 2 && 'Enter the 6-digit code sent to your email.'}
                 {currentStep === 3 && 'Create a new secure password.'}
@@ -490,7 +498,7 @@ export default function ForgotPassword() {
                 <div className="text-center">
                   <Link
                     to="/login"
-                    className="text-gray  -600 hover:text-gray-900 flex items-center justify-center gap-1"
+                    className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white flex items-center justify-center gap-1 transition-colors"
                   >
                     <ArrowLeft size={16} />
                     Back to Login
@@ -499,14 +507,14 @@ export default function ForgotPassword() {
               )}
 
               {/* Help Section */}
-              <div className="mt-8 pt-6 border-t border-gray-200">
-                <h3 className="text-sm font-medium text-gray-900 mb-3">Need help?</h3>
-                <ul className="text-sm text-gray-600 space-y-2">
+              <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Need help?</h3>
+                <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-2">
                   <li>• Make sure you're using your PHINMA Education email address (@phinmaed.com for students or @phinma.edu.com for professors)</li>
                   <li>• Contact IT support if you don't have access to your email</li>
                   <li>
                     • New users should{' '}
-                    <Link to="/signup" className="text-blue-600 hover:text-blue-700 underline">
+                    <Link to="/signup" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline transition-colors">
                       create an account
                     </Link>
                   </li>
