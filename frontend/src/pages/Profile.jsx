@@ -1,8 +1,9 @@
 import DashboardNav from '../components/dashboardNAv';
-import { Edit3, Plus, ChevronRight, Target, Briefcase, TrendingUp } from 'lucide-react';
+import { Edit3, Plus, ChevronRight, Target, Briefcase, TrendingUp, Award } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useTheme } from '../contexts/ThemeContext';
+import { mockRecommendations } from '../data/mockRecommendations';
 
 const categories = [
   {
@@ -83,8 +84,6 @@ export default function Profile() {
         userName="Alex Rivera" 
         isMobileMenuOpen={isMobileMenuOpen} 
         setIsMobileMenuOpen={setIsMobileMenuOpen}
-        onToggleDarkMode={toggleDarkMode}
-        isDarkMode={isDarkMode}
       />
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
@@ -111,7 +110,7 @@ export default function Profile() {
 
           {/* Tabs */}
           <div className="mt-6">
-            <div className="inline-flex bg-muted rounded-lg p-1">
+            <div className="inline-flex bg-muted rounded-full p-1">
               <Tab active={activeTab === 'skills'} onClick={() => setActiveTab('skills')}>Skills</Tab>
               <Tab active={activeTab === 'roleHistory'} onClick={() => setActiveTab('roleHistory')}>Role History</Tab>
               <Tab active={activeTab === 'growthPlan'} onClick={() => setActiveTab('growthPlan')}>Growth Plan</Tab>
@@ -190,15 +189,17 @@ export default function Profile() {
                     <TrendingUp size={20} className="text-warning" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-card-foreground">Growth Plan</h2>
-                    <p className="text-sm text-muted-foreground">Your personalized development roadmap</p>
+                    <h2 className="text-lg font-semibold text-card-foreground">Personalized Growth Recommendations</h2>
+                    <p className="text-sm text-muted-foreground">Strategic advice to advance your skills and career</p>
                   </div>
                 </div>
               </div>
 
               <div className="p-6">
-                <div className="text-center py-12 bg-muted/30 rounded-lg border border-border">
-                  <div className="text-muted-foreground text-sm">Growth plan content coming soon...</div>
+                <div className="space-y-6">
+                  {mockRecommendations.map((recommendation) => (
+                    <RecommendationCard key={recommendation.id} recommendation={recommendation} />
+                  ))}
                 </div>
               </div>
             </>
@@ -232,7 +233,7 @@ function Tab({ children, active, onClick }) {
     <button
       onClick={onClick}
       className={
-        `px-3 py-1.5 text-sm rounded-md transition ` +
+        `px-3 py-1.5 text-sm rounded-full transition ` +
         (active ? 'bg-card text-card-foreground shadow-sm border border-border' : 'text-muted-foreground hover:text-card-foreground')
       }
     >
@@ -306,6 +307,66 @@ function ProjectCard({ project, isLast }) {
   );
 }
 
+
+function RecommendationCard({ recommendation }) {
+  const handleResourceClick = (url) => {
+    window.open(url, '_blank');
+  };
+
+  return (
+    <div className="bg-muted/30 rounded-xl border border-border p-6 hover:bg-muted/50 transition-all duration-200">
+      <div className="flex items-start gap-4">
+        {/* Icon */}
+        <div className="p-2 rounded-lg bg-gradient-to-r from-[#2563EB] to-[#14B8A6] flex-shrink-0">
+          <Award className="h-5 w-5 text-white" />
+        </div>
+        
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <h4 className="font-semibold text-card-foreground mb-4">{recommendation.skillName}</h4>
+          
+          {/* Why this matters */}
+          <div className="mb-4">
+            <p className="text-sm font-medium text-muted-foreground mb-1">
+              Why this matters:
+            </p>
+            <p className="text-sm text-card-foreground">
+              {recommendation.reason}
+            </p>
+          </div>
+          
+          {/* Suggested action */}
+          <div className="mb-4">
+            <p className="text-sm font-medium text-muted-foreground mb-1">
+              Suggested action:
+            </p>
+            <p className="text-sm text-card-foreground">
+              {recommendation.suggestedAction}
+            </p>
+          </div>
+          
+          {/* Resources */}
+          <div>
+            <p className="text-sm font-medium text-muted-foreground mb-2">
+              Resources:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {recommendation.resourceLinks.map((link, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleResourceClick(link.url)}
+                  className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-card-foreground bg-card border border-border rounded-lg hover:bg-muted hover:shadow-md hover:scale-105 transition-all duration-200"
+                >
+                  {link.title}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function AddSkillModal({ onClose, onAdd }) {
   const [selectedSkill, setSelectedSkill] = useState('');

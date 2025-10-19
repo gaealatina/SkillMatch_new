@@ -157,8 +157,6 @@ export default function Dashboard() {
         userName="Alex Rivera" 
         isMobileMenuOpen={isMobileMenuOpen} 
         setIsMobileMenuOpen={setIsMobileMenuOpen}
-        onToggleDarkMode={toggleDarkMode}
-        isDarkMode={isDarkMode}
       />
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">

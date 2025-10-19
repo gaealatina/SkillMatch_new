@@ -1,5 +1,5 @@
 import { NavLink, Link } from 'react-router-dom';
-import { Settings, Menu, X, Moon, Sun } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import logo from '../assets/logo.png';
 
@@ -42,8 +42,6 @@ export default function DashboardNav({
   ],
   isMobileMenuOpen = false,
   setIsMobileMenuOpen = () => {},
-  onToggleDarkMode = () => {},
-  isDarkMode = false,
 }) {
   const initials = getInitials(userName);
 
@@ -81,15 +79,6 @@ export default function DashboardNav({
         <div className="flex items-center gap-4">
           {/* Desktop Settings and User - Hidden on mobile */}
           <div className="hidden md:flex items-center gap-4">
-            {/* Dark Mode Toggle */}
-            <button
-              onClick={onToggleDarkMode}
-              className="p-2 text-muted-foreground hover:text-secondary hover:bg-muted rounded-lg transition-colors"
-              title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-              {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-            
             <Link to="/settings" className="text-muted-foreground hover:text-secondary">
               <Settings size={18} />
             </Link>

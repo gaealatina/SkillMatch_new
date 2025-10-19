@@ -247,8 +247,6 @@ export default function CareerPath() {
   return (
     <div className="min-h-screen bg-background">
       <DashboardNav 
-        onToggleDarkMode={toggleDarkMode}
-        isDarkMode={isDarkMode}
         isMobileMenuOpen={isMobileMenuOpen}
         setIsMobileMenuOpen={setIsMobileMenuOpen}
       />

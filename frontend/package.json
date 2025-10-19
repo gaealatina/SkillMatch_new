@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:mobile": "node run-mobile-tests.js",
+    "test:mobile:watch": "nodemon run-mobile-tests.js"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",

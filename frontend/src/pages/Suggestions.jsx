@@ -88,6 +88,7 @@ export default function Suggestions() {
   const [recommendations, setRecommendations] = useState(mockRecommendations);
   const [goals, setGoals] = useState([]);
   const [hiddenRecommendations, setHiddenRecommendations] = useState(new Set());
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const visibleRecommendations = recommendations.filter(
     rec => !hiddenRecommendations.has(rec.id)
@@ -151,8 +152,9 @@ export default function Suggestions() {
   return (
     <div className="min-h-screen bg-background">
       <DashboardNav 
-        onToggleDarkMode={toggleDarkMode}
-        isDarkMode={isDarkMode}
+        userName="Alex Rivera"
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
       />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         {/* Header Section */}
