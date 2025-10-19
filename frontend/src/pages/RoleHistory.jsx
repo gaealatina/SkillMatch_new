@@ -8,8 +8,11 @@ import {
   ChevronRight, 
   Trash2,
   User,
-  X
+  X,
+  Briefcase
 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useTheme } from '../contexts/ThemeContext';
 
 const projectData = [
   {
@@ -65,6 +68,7 @@ const projectData = [
 // This will be calculated dynamically in the component
 
 export default function RoleHistory() {
+  const { isDarkMode, toggleDarkMode } = useTheme();
   const [projects, setProjects] = useState(projectData);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, projectId: null, projectTitle: '' });
   const [addModal, setAddModal] = useState({ isOpen: false });
@@ -114,10 +118,10 @@ export default function RoleHistory() {
   };
 
   const getPerformanceColor = (performance) => {
-    if (performance >= 90) return "bg-green-100 text-green-800";
-    if (performance >= 80) return "bg-green-100 text-green-800";
-    if (performance >= 70) return "bg-orange-100 text-orange-800";
-    return "bg-red-100 text-red-800";
+    if (performance >= 90) return "bg-success/10 text-success border-success/20";
+    if (performance >= 80) return "bg-success/10 text-success border-success/20";
+    if (performance >= 70) return "bg-warning/10 text-warning border-warning/20";
+    return "bg-destructive/10 text-destructive border-destructive/20";
   };
 
   const handleDeleteClick = (projectId, projectTitle) => {
@@ -130,6 +134,10 @@ export default function RoleHistory() {
     console.log('Current projects before deletion:', projects.map(p => ({ id: p.id, title: p.title })));
     setProjects(projects.filter(project => project.id !== deleteModal.projectId));
     setDeleteModal({ isOpen: false, projectId: null, projectTitle: '' });
+    
+    toast.success(`Project "${deleteModal.projectTitle}" deleted successfully!`, {
+      description: 'The project has been removed from your history.'
+    });
   };
 
   const handleDeleteCancel = () => {
@@ -216,30 +224,47 @@ export default function RoleHistory() {
 
     setProjects([newProject, ...projects]);
     handleAddProjectCancel();
+    
+    toast.success(`Project "${newProject.title}" added successfully!`, {
+      description: 'Your new project has been added to your history.'
+    });
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <DashboardNav userName="Alex Rivera" isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
+    <div className="min-h-screen bg-background">
+      <DashboardNav 
+        userName="Alex Rivera" 
+        isMobileMenuOpen={isMobileMenuOpen} 
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
+        onToggleDarkMode={toggleDarkMode}
+        isDarkMode={isDarkMode}
+      />
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Your Project History</h1>
-          <p className="mt-2 text-gray-600">Track your roles, achievements, and skill development across projects.</p>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <Briefcase size={24} className="text-primary" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Your Project History</h1>
+              <p className="mt-1 text-muted-foreground">Track your roles, achievements, and skill development across projects.</p>
+            </div>
+          </div>
         </header>
 
         {/* Summary Cards */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
           {summaryStats.map((stat, index) => (
-            <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div key={index} className="bg-card rounded-xl border border-border p-6 hover:shadow-md transition-all duration-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm text-gray-600 mb-1">{stat.label}</div>
-                  <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+                  <div className="text-sm text-muted-foreground mb-1">{stat.label}</div>
+                  <div className="text-3xl font-bold text-card-foreground">{stat.value}</div>
                 </div>
-                <div className={`w-8 h-8 rounded-lg bg-gray-100 ${stat.color} grid place-items-center`}>
-                  <stat.icon size={16} />
+                <div className={`w-12 h-12 rounded-xl bg-primary/10 ${stat.color} grid place-items-center`}>
+                  <stat.icon size={20} />
                 </div>
               </div>
             </div>
@@ -251,7 +276,7 @@ export default function RoleHistory() {
           <div className="flex justify-end mb-6">
             <button 
               onClick={handleAddProjectClick}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
             >
               <Plus size={16} />
               Add Project
@@ -260,23 +285,30 @@ export default function RoleHistory() {
         )}
 
         {/* Project Timeline */}
-        <section className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Project Timeline</h2>
-            <p className="text-sm text-gray-600 mt-1">Detailed view of all your project contributions.</p>
+        <section className="bg-card rounded-xl border border-border hover:shadow-md transition-all duration-200">
+          <div className="p-6 border-b border-border">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
+                <TrendingUp size={20} className="text-secondary" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-card-foreground">Project Timeline</h2>
+                <p className="text-sm text-muted-foreground">Detailed view of all your project contributions.</p>
+              </div>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
             {projects.length === 0 ? (
               <div className="text-center py-12">
-                <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <Plus size={32} className="text-gray-400" />
+                <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
+                  <Plus size={32} className="text-muted-foreground" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No Projects Yet</h3>
-                <p className="text-gray-500 mb-6">Start building your project portfolio by adding your first project.</p>
+                <h3 className="text-lg font-medium text-card-foreground mb-2">No Projects Yet</h3>
+                <p className="text-muted-foreground mb-6">Start building your project portfolio by adding your first project.</p>
                 <button 
                   onClick={handleAddProjectClick}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                 >
                   <Plus size={16} />
                   Add Your First Project
@@ -284,47 +316,47 @@ export default function RoleHistory() {
               </div>
             ) : (
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-muted/50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8"></th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project Title</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team Size</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Skills Used</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Performance</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12"></th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider w-8"></th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Project Title</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Role</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Team Size</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Skills Used</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Performance</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider w-12"></th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-border">
                   {projects.map((project) => [
-                    <tr key={project.id} className="hover:bg-gray-50">
+                    <tr key={project.id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button
                           onClick={() => toggleExpanded(project.id)}
-                          className="text-gray-400 hover:text-gray-600"
+                          className="text-muted-foreground hover:text-card-foreground transition-colors"
                         >
                           {project.expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                         </button>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{project.title}</div>
+                        <div className="text-sm font-medium text-card-foreground">{project.title}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{project.role}</div>
+                        <div className="text-sm text-card-foreground">{project.role}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{project.teamSize}</div>
+                        <div className="text-sm text-card-foreground">{project.teamSize}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-wrap gap-1">
                           {project.skills.slice(0, 2).map((skill, index) => (
-                            <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-success/10 text-success border border-success/20">
                               {skill}
                             </span>
                           ))}
                           {project.skills.length > 2 && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground border border-border">
                               +{project.skills.length - 2}
                             </span>
                           )}
@@ -336,12 +368,12 @@ export default function RoleHistory() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{project.date}</div>
+                        <div className="text-sm text-card-foreground">{project.date}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button 
                           onClick={() => handleDeleteClick(project.id, project.title)}
-                          className="text-gray-400 hover:text-red-600"
+                          className="text-muted-foreground hover:text-destructive transition-colors"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -350,14 +382,14 @@ export default function RoleHistory() {
                     // Expanded Details Row
                     project.expanded && (
                       <tr key={`${project.id}-expanded`}>
-                        <td colSpan="8" className="px-6 py-4 bg-gray-50">
-                          <div className="space-y-4">
+                        <td colSpan="8" className="px-6 py-4 bg-muted/30">
+                          <div className="space-y-6">
                             {/* Team Members */}
                             <div>
-                              <h4 className="text-sm font-medium text-gray-900 mb-2">Team Members</h4>
-                              <div className="flex flex-wrap gap-2">
+                              <h4 className="text-sm font-medium text-card-foreground mb-3">Team Members</h4>
+                              <div className="flex flex-wrap gap-3">
                                 {project.teamMembers.map((member, index) => (
-                                  <div key={index} className="flex items-center gap-2 text-sm text-gray-600">
+                                  <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground bg-card px-3 py-2 rounded-lg border border-border">
                                     <User size={14} />
                                     <span>{member}</span>
                                   </div>
@@ -367,10 +399,10 @@ export default function RoleHistory() {
 
                             {/* All Skills Applied */}
                             <div>
-                              <h4 className="text-sm font-medium text-gray-900 mb-2">All Skills Applied</h4>
+                              <h4 className="text-sm font-medium text-card-foreground mb-3">All Skills Applied</h4>
                               <div className="flex flex-wrap gap-2">
                                 {project.skills.map((skill, index) => (
-                                  <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  <span key={index} className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-success/10 text-success border border-success/20">
                                     {skill}
                                   </span>
                                 ))}
@@ -379,8 +411,8 @@ export default function RoleHistory() {
 
                             {/* Project Notes */}
                             <div>
-                              <h4 className="text-sm font-medium text-gray-900 mb-2">Project Notes</h4>
-                              <p className="text-sm text-gray-600">{project.notes}</p>
+                              <h4 className="text-sm font-medium text-card-foreground mb-3">Project Notes</h4>
+                              <p className="text-sm text-muted-foreground bg-card p-4 rounded-lg border border-border">{project.notes}</p>
                             </div>
                           </div>
                         </td>

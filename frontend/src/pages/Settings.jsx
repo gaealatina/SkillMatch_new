@@ -1,8 +1,11 @@
 import DashboardNav from '../components/dashboardNAv';
 import { useState } from 'react';
 import { Eye, EyeOff, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function Settings() {
+  const { isDarkMode, toggleDarkMode } = useTheme();
   const [activeTab, setActiveTab] = useState('account');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showPasswords, setShowPasswords] = useState({
@@ -19,8 +22,14 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <DashboardNav userName="Alex Rivera" isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />
+    <div className="min-h-screen bg-background">
+      <DashboardNav 
+        userName="Alex Rivera" 
+        isMobileMenuOpen={isMobileMenuOpen} 
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
+        onToggleDarkMode={toggleDarkMode}
+        isDarkMode={isDarkMode}
+      />
 
        
 
@@ -79,6 +88,18 @@ function SettingsTab({ children, active, onClick }) {
 }
 
 function AccountSettings({ showPasswords, togglePasswordVisibility }) {
+  const handleSaveChanges = () => {
+    toast.success('Account settings saved successfully!', {
+      description: 'Your changes have been updated.'
+    });
+  };
+
+  const handleDeleteAccount = () => {
+    toast.error('Account deletion requires confirmation', {
+      description: 'Please contact support to proceed with account deletion.'
+    });
+  };
+
   return (
     <div className="space-y-6 sm:space-y-8 w-full">
       {/* Account Information */}
@@ -160,7 +181,10 @@ function AccountSettings({ showPasswords, togglePasswordVisibility }) {
             </div>
           </div>
           
-          <button className="bg-blue-600 text-white py-2.5 px-6 rounded-lg hover:bg-blue-700 transition text-sm font-medium">
+          <button 
+            onClick={handleSaveChanges}
+            className="bg-blue-600 text-white py-2.5 px-6 rounded-lg hover:bg-blue-700 transition text-sm font-medium"
+          >
             Save Changes
           </button>
         </div>
@@ -170,7 +194,10 @@ function AccountSettings({ showPasswords, togglePasswordVisibility }) {
       <div className="border border-red-200 rounded-lg p-4 sm:p-5 bg-red-50 w-full">
         <h3 className="text-lg font-semibold text-red-900 mb-2">Danger Zone</h3>
         <p className="text-sm text-red-700 mb-4">Irreversible account actions</p>
-        <button className="flex items-center gap-2 bg-red-600 text-white py-2.5 px-4 rounded-lg hover:bg-red-700 transition text-sm font-medium">
+        <button 
+          onClick={handleDeleteAccount}
+          className="flex items-center gap-2 bg-red-600 text-white py-2.5 px-4 rounded-lg hover:bg-red-700 transition text-sm font-medium"
+        >
           <Trash2 size={16} />
           Delete Account
         </button>
