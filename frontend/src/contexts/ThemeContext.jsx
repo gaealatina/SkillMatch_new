@@ -13,13 +13,15 @@ export const useTheme = () => {
 export const ThemeProvider = ({ children }) => {
   const [isDarkMode, setIsDarkMode] = useState(() => {
     // Check if there's a saved theme preference in localStorage
-    const savedTheme = localStorage.getItem('theme');
+    const savedTheme = localStorage.getItem('isDarkMode');
     if (savedTheme) {
-      return savedTheme === 'dark';
+      return JSON.parse(savedTheme);
     }
     // Check system preference
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
+
+  const [isThemeTransitioning, setIsThemeTransitioning] = useState(false);
 
   useEffect(() => {
     // Apply theme to document
@@ -30,16 +32,27 @@ export const ThemeProvider = ({ children }) => {
     }
     
     // Save theme preference
-    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+    localStorage.setItem('isDarkMode', JSON.stringify(isDarkMode));
   }, [isDarkMode]);
 
-  const toggleTheme = () => {
-    setIsDarkMode(prev => !prev);
+  const toggleDarkMode = () => {
+    setIsThemeTransitioning(true);
+    
+    // Small delay to show animation
+    setTimeout(() => {
+      setIsDarkMode(prev => !prev);
+    }, 100);
+    
+    // Hide animation after theme transition completes
+    setTimeout(() => {
+      setIsThemeTransitioning(false);
+    }, 600);
   };
 
   const value = {
     isDarkMode,
-    toggleTheme,
+    toggleDarkMode,
+    isThemeTransitioning,
   };
 
   return (
