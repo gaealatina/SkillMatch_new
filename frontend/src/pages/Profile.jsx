@@ -251,10 +251,10 @@ export default function Profile() {
                 </div>
               </div>
             </div>
+           
             <button 
-              onClick={() => setShowEditProfile(true)}
-              className="inline-flex items-center gap-2 px-3 py-2 text-sm text-card-foreground border border-border rounded-lg hover:bg-muted transition-colors"
-            >
+            onClick={() => setShowEditProfile(true)}
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm text-card-foreground border border-border rounded-[12px] hover:bg-muted transition-colors">
               <Edit3 size={16} /> Edit Profile
             </button>
           </div>
@@ -283,7 +283,7 @@ export default function Profile() {
                     <p className="text-sm text-muted-foreground">Click on any skill to update proficiency or log practice time</p>
                   </div>
                 </div>
-                <button onClick={() => setShowAddSkill(true)} className="inline-flex items-center gap-2 px-4 py-2 text-sm text-success bg-success/10 rounded-lg hover:bg-success/20 border border-success/20 transition-colors">
+                <button onClick={() => setShowAddSkill(true)} className="inline-flex items-center gap-2 px-4 py-2 text-sm text-success bg-success/10 rounded-[12px] hover:bg-success/20 border border-success/20 transition-colors">
                   <Plus size={16} /> Add Skill
                 </button>
               </div>

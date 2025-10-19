@@ -298,7 +298,7 @@ export default function Dashboard() {
             <div className="mt-6">
               <button 
                 onClick={handleViewAllSkills}
-                className="w-full sm:w-auto inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-card-foreground border border-border rounded-lg hover:bg-muted transition-colors"
+                className="w-full sm:w-auto inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-card-foreground border border-border rounded-[12px] hover:bg-muted transition-colors"
               >
                 View All Skills <ChevronRight size={16} />
               </button>
@@ -334,7 +334,7 @@ export default function Dashboard() {
             
             <button 
               onClick={handleViewHistory}
-              className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-card-foreground border border-border rounded-lg hover:bg-muted transition-colors"
+              className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-card-foreground border border-border rounded-[12px] hover:bg-muted transition-colors"
             >
               View History <ChevronRight size={16} />
             </button>
@@ -355,7 +355,7 @@ export default function Dashboard() {
             </div>
             <button 
               onClick={handleViewAllRecommendations}
-              className="hidden sm:inline-flex items-center gap-2 px-3 py-2 text-sm text-card-foreground border border-border rounded-lg hover:bg-muted transition-colors"
+              className="hidden sm:inline-flex items-center gap-2 px-3 py-2 text-sm text-card-foreground border border-border rounded-[12px] hover:bg-muted transition-colors"
             >
               View All <ChevronRight size={16} />
             </button>
@@ -385,7 +385,7 @@ export default function Dashboard() {
                 
                 <button 
                   onClick={() => handleLearnMore(recommendation)}
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-card-foreground border border-border rounded-lg hover:bg-muted transition-colors"
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-card-foreground border border-border rounded-lg hover:bg-secondary transition-colors"
                 >
                   Learn More <ChevronRight size={16} />
                 </button>
@@ -408,7 +408,7 @@ export default function Dashboard() {
             </div>
             <button 
               onClick={handleExploreCareers}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-[12px] hover:bg-primary/90 transition-colors"
             >
               Explore Careers <ChevronRight size={16} />
             </button>
