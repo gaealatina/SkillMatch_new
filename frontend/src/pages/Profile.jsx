@@ -1,4 +1,4 @@
-import DashboardNav from '../components/dashboardNAv';
+import DashboardNav from '../components/dashboardNav';
 import { Edit3, Plus, ChevronRight, Target, Briefcase, TrendingUp, Award, Camera } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
