@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Briefcase, 
@@ -12,8 +12,11 @@ import {
 import { toast } from 'sonner';
 import DashboardNav from '../components/dashboardNAv.jsx';
 import { useTheme } from '../contexts/ThemeContext';
+import axios from 'axios';
 
-// Mock user skills data (same as Dashboard)
+const API_BASE_URL = 'http://localhost:5000/api';
+
+// Mock user skills data
 const mockUserSkills = [
   { skillId: '1', skillName: 'JavaScript', proficiency: 85, category: 'Programming' },
   { skillId: '2', skillName: 'React', proficiency: 80, category: 'Web Development' },
@@ -220,6 +223,39 @@ export default function CareerPath() {
   const navigate = useNavigate();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch user data
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          navigate('/');
+          return;
+        }
+
+        const response = await axios.get(`${API_BASE_URL}/settings/user`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        
+        setUserData(response.data);
+      } catch (err) {
+        console.error('Error fetching user:', err);
+        toast.error('Failed to load user data');
+        navigate('/');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [navigate]);
 
   // Calculate career matches and rank them
   const rankedPaths = useMemo(() => {
@@ -230,7 +266,7 @@ export default function CareerPath() {
         skillDetails: getSkillDetails(path, mockUserSkills),
       }))
       .sort((a, b) => b.matchPercentage - a.matchPercentage);
-  }, [mockUserSkills]);
+  }, []);
 
   const topMatch = rankedPaths[0];
 
@@ -240,13 +276,22 @@ export default function CareerPath() {
     });
   };
 
-  const handleViewAllSkills = () => {
-    navigate('/profile');
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading career paths...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
       <DashboardNav 
+        userName={userData ? `${userData.firstName} ${userData.lastName}` : 'User'}
+        user={userData}
         isMobileMenuOpen={isMobileMenuOpen}
         setIsMobileMenuOpen={setIsMobileMenuOpen}
       />

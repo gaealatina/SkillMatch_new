@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardNav from '../components/dashboardNAv';
 import { 
   TrendingUp, 
@@ -13,66 +13,18 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '../contexts/ThemeContext';
+import axios from 'axios';
 
-const projectData = [
-  {
-    id: 1,
-    title: "E-Commerce Platform",
-    role: "Frontend Developer",
-    teamSize: 3,
-    skills: ["React", "JavaScript", "CSS/Tailwind", "Git/GitHub"],
-    performance: 92,
-    date: "Dec 15, 2024",
-    teamMembers: ["Sarah Chen", "Mike Johnson", "Lisa Wong"],
-    notes: "This project helped develop strong collaboration skills and improved technical proficiency in frontend technologies.",
-    expanded: false
-  },
-  {
-    id: 2,
-    title: "Student Portal System",
-    role: "Full Stack Developer",
-    teamSize: 2,
-    skills: ["React", "Node.js", "MongoDB", "Express"],
-    performance: 88,
-    date: "Sep 20, 2024",
-    teamMembers: ["John Smith", "Emily Davis"],
-    notes: "Led the development of a comprehensive student management system with real-time notifications.",
-    expanded: false
-  },
-  {
-    id: 3,
-    title: "Mobile App Prototype",
-    role: "UI/UX Designer",
-    teamSize: 4,
-    skills: ["UI/UX Design", "Communication", "Figma", "Prototyping"],
-    performance: 85,
-    date: "Jun 10, 2024",
-    teamMembers: ["Alex Kim", "Maria Garcia", "David Lee", "Sophie Wilson"],
-    notes: "Designed intuitive user interfaces for a mobile application focused on accessibility and user experience.",
-    expanded: false
-  },
-  {
-    id: 4,
-    title: "Data Analytics Dashboard",
-    role: "Backend Developer",
-    teamSize: 2,
-    skills: ["Python", "SQL", "Django", "PostgreSQL"],
-    performance: 78,
-    date: "Mar 5, 2024",
-    teamMembers: ["Tom Brown", "Anna Taylor"],
-    notes: "Built robust data processing pipelines and created interactive dashboards for business intelligence.",
-    expanded: false
-  }
-];
-
-// This will be calculated dynamically in the component
+const API_BASE_URL = 'http://localhost:5000/api/role-history';
 
 export default function RoleHistory() {
   const { isDarkMode, toggleDarkMode } = useTheme();
-  const [projects, setProjects] = useState(projectData);
+  const [projects, setProjects] = useState([]);
+  const [userData, setUserData] = useState(null);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, projectId: null, projectTitle: '' });
   const [addModal, setAddModal] = useState({ isOpen: false });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     title: '',
     role: '',
@@ -84,32 +36,67 @@ export default function RoleHistory() {
   });
   const [formErrors, setFormErrors] = useState({});
 
-  // Calculate summary statistics dynamically
-  const calculateSummaryStats = () => {
-    const totalProjects = projects.length;
-    
-    const avgPerformance = totalProjects > 0 
-      ? Math.round(projects.reduce((sum, project) => sum + project.performance, 0) / totalProjects)
-      : 0;
-    
-    const totalTeamMembers = projects.reduce((sum, project) => sum + project.teamSize, 0);
-    
-    const allSkills = projects.flatMap(project => project.skills);
-    const uniqueSkills = [...new Set(allSkills)];
-    const totalSkillsApplied = uniqueSkills.length;
+  
+  useEffect(() => {
+    const fetchRoleHistory = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          setLoading(false);
+          return;
+        }
 
-    return [
-      { label: "Total Projects", value: totalProjects, icon: TrendingUp, color: "text-blue-600" },
-      { label: "Avg Performance", value: avgPerformance, icon: TrendingUp, color: "text-green-600" },
-      { label: "Team Members", value: totalTeamMembers, icon: Users, color: "text-blue-600" },
-      { label: "Skills Applied", value: totalSkillsApplied, icon: TrendingUp, color: "text-yellow-600" }
-    ];
-  };
+        const response = await axios.get(API_BASE_URL, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setProjects(response.data.projects || []);
+        setUserData(response.data.user);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching role history:', err);
+        toast.error('Failed to load role history');
+        setLoading(false);
+      }
+    };
+
+    fetchRoleHistory();
+  }, []);
+
+const calculateSummaryStats = () => {
+  const totalProjects = projects.length;
+  
+  const avgPerformance = totalProjects > 0 
+    ? Math.round(projects.reduce((sum, project) => sum + project.performance, 0) / totalProjects)
+    : 0;
+  
+
+  const totalTeamMembers = projects.reduce((sum, project) => {
+    console.log(`Project: ${project.title}, Team Size: ${project.teamSize}, Team Members:`, project.teamMembers);
+    return sum + (project.teamSize || 0);
+  }, 0);
+  
+  const allSkills = projects.flatMap(project => project.skills);
+  const uniqueSkills = [...new Set(allSkills)];
+  const totalSkillsApplied = uniqueSkills.length;
+
+  console.log('Summary Stats:', { totalProjects, avgPerformance, totalTeamMembers, totalSkillsApplied });
+
+  return [
+    { label: "Total Projects", value: totalProjects, icon: TrendingUp, color: "text-blue-600" },
+    { label: "Avg Performance", value: avgPerformance, icon: TrendingUp, color: "text-green-600" },
+    { label: "Team Members", value: totalTeamMembers, icon: Users, color: "text-blue-600" },
+    { label: "Skills Applied", value: totalSkillsApplied, icon: TrendingUp, color: "text-yellow-600" }
+  ];
+};
 
   const summaryStats = calculateSummaryStats();
 
   const toggleExpanded = (projectId) => {
-    console.log('Toggling project:', projectId);
     setProjects(projects.map(project => 
       project.id === projectId 
         ? { ...project, expanded: !project.expanded }
@@ -125,19 +112,28 @@ export default function RoleHistory() {
   };
 
   const handleDeleteClick = (projectId, projectTitle) => {
-    console.log('Delete clicked for project:', projectId, projectTitle);
     setDeleteModal({ isOpen: true, projectId, projectTitle });
   };
 
-  const handleDeleteConfirm = () => {
-    console.log('Deleting project with ID:', deleteModal.projectId);
-    console.log('Current projects before deletion:', projects.map(p => ({ id: p.id, title: p.title })));
-    setProjects(projects.filter(project => project.id !== deleteModal.projectId));
-    setDeleteModal({ isOpen: false, projectId: null, projectTitle: '' });
-    
-    toast.success(`Project "${deleteModal.projectTitle}" deleted successfully!`, {
-      description: 'The project has been removed from your history.'
-    });
+  const handleDeleteConfirm = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_BASE_URL}/${deleteModal.projectId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setProjects(projects.filter(project => project.id !== deleteModal.projectId));
+      setDeleteModal({ isOpen: false, projectId: null, projectTitle: '' });
+      
+      toast.success(`Project "${deleteModal.projectTitle}" deleted successfully!`, {
+        description: 'The project has been removed from your history.'
+      });
+    } catch (err) {
+      console.error('Error deleting project:', err);
+      toast.error('Failed to delete project');
+    }
   };
 
   const handleDeleteCancel = () => {
@@ -178,7 +174,7 @@ export default function RoleHistory() {
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
+  
     if (formErrors[name]) {
       setFormErrors(prev => ({
         ...prev,
@@ -202,44 +198,64 @@ export default function RoleHistory() {
     return Object.keys(errors).length === 0;
   };
 
-  const handleAddProjectSubmit = (e) => {
+  const handleAddProjectSubmit = async (e) => {
     e.preventDefault();
     
     if (!validateForm()) {
       return;
     }
 
-    const newProject = {
-      id: projects.length > 0 ? Math.max(...projects.map(p => p.id)) + 1 : 1,
-      title: formData.title.trim(),
-      role: formData.role.trim(),
-      teamSize: formData.teamMembers.trim() ? formData.teamMembers.split(',').length : 0,
-      skills: formData.skills.trim() ? formData.skills.split(',').map(s => s.trim()) : [],
-      performance: parseInt(formData.performance),
-      date: formData.date.trim(),
-      teamMembers: formData.teamMembers.trim() ? formData.teamMembers.split(',').map(m => m.trim()) : [],
-      notes: formData.notes.trim(),
-      expanded: false
-    };
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(API_BASE_URL, {
+        title: formData.title.trim(),
+        role: formData.role.trim(),
+        teamMembers: formData.teamMembers.trim() ? formData.teamMembers.split(',').map(m => m.trim()) : [],
+        skills: formData.skills.trim() ? formData.skills.split(',').map(s => s.trim()) : [],
+        performance: parseInt(formData.performance),
+        date: formData.date.trim(),
+        notes: formData.notes.trim(),
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    setProjects([newProject, ...projects]);
-    handleAddProjectCancel();
-    
-    toast.success(`Project "${newProject.title}" added successfully!`, {
-      description: 'Your new project has been added to your history.'
-    });
+      setProjects([response.data.project, ...projects]);
+      handleAddProjectCancel();
+      
+      toast.success(`Project "${response.data.project.title}" added successfully!`, {
+        description: 'Your new project has been added to your history.'
+      });
+    } catch (err) {
+      console.error('Error adding project:', err);
+      toast.error(err.response?.data?.message || 'Failed to add project');
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading role history...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
       <DashboardNav 
-        userName="Alex Rivera" 
+        userName={userData ? `${userData.firstName} ${userData.lastName}` : 'User'}
+        userAvatar={userData?.profilePicture}
         isMobileMenuOpen={isMobileMenuOpen} 
         setIsMobileMenuOpen={setIsMobileMenuOpen}
       />
 
+      
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
+        
         <header className="mb-8">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -252,7 +268,7 @@ export default function RoleHistory() {
           </div>
         </header>
 
-        {/* Summary Cards */}
+  
         <section className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
           {summaryStats.map((stat, index) => (
             <div key={index} className="bg-card rounded-xl border border-border p-6 hover:shadow-md transition-all duration-200">
@@ -269,7 +285,7 @@ export default function RoleHistory() {
           ))}
         </section>
 
-        {/* Add Project Button - Only show when there are projects */}
+       
         {projects.length > 0 && (
           <div className="flex justify-end mb-6">
             <button 
@@ -282,7 +298,7 @@ export default function RoleHistory() {
           </div>
         )}
 
-        {/* Project Timeline */}
+   
         <section className="bg-card rounded-xl border border-border hover:shadow-md transition-all duration-200">
           <div className="p-6 border-b border-border">
             <div className="flex items-center gap-3">
@@ -377,7 +393,7 @@ export default function RoleHistory() {
                         </button>
                       </td>
                     </tr>,
-                    // Expanded Details Row
+                    
                     project.expanded && (
                       <tr key={`${project.id}-expanded`}>
                         <td colSpan="8" className="px-6 py-4 bg-muted/30">
@@ -395,7 +411,7 @@ export default function RoleHistory() {
                               </div>
                             </div>
 
-                            {/* All Skills Applied */}
+                           
                             <div>
                               <h4 className="text-sm font-medium text-card-foreground mb-3">All Skills Applied</h4>
                               <div className="flex flex-wrap gap-2">
@@ -407,7 +423,7 @@ export default function RoleHistory() {
                               </div>
                             </div>
 
-                            {/* Project Notes */}
+                            
                             <div>
                               <h4 className="text-sm font-medium text-card-foreground mb-3">Project Notes</h4>
                               <p className="text-sm text-muted-foreground bg-card p-4 rounded-lg border border-border">{project.notes}</p>
@@ -424,20 +440,16 @@ export default function RoleHistory() {
         </section>
       </main>
 
-      {/* Delete Confirmation Modal */}
+     
       {deleteModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          {/* 75% Black Background Overlay */}
           <div className="absolute inset-0 bg-black bg-opacity-75" onClick={handleDeleteCancel}></div>
-          
-          {/* Modal Dialog */}
           <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
             <div className="p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Delete Project</h3>
               <p className="text-sm text-gray-600 mb-6">
                 Are you sure you want to delete this project? This action cannot be undone and will permanently remove the project from your history.
               </p>
-              
               <div className="flex justify-end space-x-3">
                 <button
                   onClick={handleDeleteCancel}
@@ -457,16 +469,12 @@ export default function RoleHistory() {
         </div>
       )}
 
-      {/* Add Project Modal */}
+      
       {addModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          {/* 75% Black Background Overlay */}
           <div className="absolute inset-0 bg-black bg-opacity-75" onClick={handleAddProjectCancel}></div>
-          
-          {/* Modal Dialog */}
           <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              {/* Header */}
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-gray-900">Add Past Project</h3>
                 <button
@@ -477,9 +485,8 @@ export default function RoleHistory() {
                 </button>
               </div>
 
-              {/* Form */}
               <form onSubmit={handleAddProjectSubmit} className="space-y-4">
-                {/* Project Title and Role Row */}
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -520,7 +527,6 @@ export default function RoleHistory() {
                   </div>
                 </div>
 
-                {/* Team Members */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Team Members (comma-separated)
@@ -535,7 +541,6 @@ export default function RoleHistory() {
                   />
                 </div>
 
-                {/* Skills Used */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Skills Used (comma-separated)
@@ -550,7 +555,6 @@ export default function RoleHistory() {
                   />
                 </div>
 
-                {/* Performance Score and Completion Date Row */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -592,7 +596,6 @@ export default function RoleHistory() {
                   </div>
                 </div>
 
-                {/* Project Notes */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Project Notes (Optional)
@@ -607,7 +610,6 @@ export default function RoleHistory() {
                   />
                 </div>
 
-                {/* Action Buttons */}
                 <div className="flex justify-end space-x-3 pt-4">
                   <button
                     type="button"

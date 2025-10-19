@@ -1,8 +1,10 @@
-import DashboardNav from '../components/dashboardNAv';
-import { useState } from 'react';
+import DashboardNav from '../components/dashboardNav';
+import { useState, useEffect } from 'react';
 import { Eye, EyeOff, Trash2, Moon, Sun, Palette } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '../contexts/ThemeContext';
+
+const API_BASE = 'http://localhost:5000/api';
 
 export default function Settings() {
   const { isDarkMode, toggleDarkMode } = useTheme();
@@ -13,6 +15,13 @@ export default function Settings() {
     new: false,
     confirm: false,
   });
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const getAuthHeaders = () => ({
+    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+    'Content-Type': 'application/json',
+  });
 
   const togglePasswordVisibility = (field) => {
     setShowPasswords(prev => ({
@@ -21,20 +30,77 @@ export default function Settings() {
     }));
   };
 
+  useEffect(() => {
+    fetchUser();
+  }, []);
+
+  const fetchUser = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_BASE}/settings/user`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (!res.ok) throw new Error('Failed to fetch user data');
+      
+      const data = await res.json();
+      setUser(data);
+    } catch (err) {
+      console.error('Fetch error:', err);
+      toast.error('Failed to load user data');
+      setUser({ 
+        name: 'User', 
+        email: 'user@example.com',
+        settings: {
+          appearance: { theme: 'system', darkMode: false },
+          notifications: {
+            skillAlerts: true,
+            projectUpdates: true,
+            weeklyReports: false,
+            recommendations: true,
+          },
+          privacy: {
+            profileVisible: true,
+            skillsVisible: true,
+            projectsVisible: true,
+          }
+        }
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-full border-4 border-border border-t-primary animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading settings...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-destructive">Error loading user data</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <DashboardNav 
-        userName="Alex Rivera" 
+        userName={user.name} 
+        user={user}
         isMobileMenuOpen={isMobileMenuOpen} 
         setIsMobileMenuOpen={setIsMobileMenuOpen}
       />
 
-       
-
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 w-full">
-        {/* Settings Card */}
         <section className="bg-card rounded-xl border border-border hover:shadow-md transition-all duration-200 w-full">
-          {/* Header */}
           <div className="p-6 border-b border-border">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -47,7 +113,6 @@ export default function Settings() {
             </div>
           </div>
           
-          {/* Settings Tabs */}
           <div className="px-6 pt-6">
             <div className="grid grid-cols-4 bg-muted rounded-full p-1 w-full gap-1">
               <SettingsTab active={activeTab === 'account'} onClick={() => setActiveTab('account')}>
@@ -65,12 +130,38 @@ export default function Settings() {
             </div>
           </div>
 
-          {/* Tab Content */}
           <div className="p-6 w-full">
-            {activeTab === 'account' && <AccountSettings showPasswords={showPasswords} togglePasswordVisibility={togglePasswordVisibility} />}
-            {activeTab === 'appearance' && <AppearanceSettings isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />}
-            {activeTab === 'notifications' && <NotificationSettings />}
-            {activeTab === 'privacy' && <PrivacySettings />}
+            {activeTab === 'account' && (
+              <AccountSettings 
+                user={user} 
+                setUser={setUser}
+                showPasswords={showPasswords} 
+                togglePasswordVisibility={togglePasswordVisibility}
+                getAuthHeaders={getAuthHeaders}
+              />
+            )}
+            {activeTab === 'appearance' && (
+              <AppearanceSettings 
+                isDarkMode={isDarkMode} 
+                toggleDarkMode={toggleDarkMode}
+                user={user}
+                getAuthHeaders={getAuthHeaders}
+              />
+            )}
+            {activeTab === 'notifications' && (
+              <NotificationSettings 
+                user={user}
+                setUser={setUser}
+                getAuthHeaders={getAuthHeaders}
+              />
+            )}
+            {activeTab === 'privacy' && (
+              <PrivacySettings 
+                user={user}
+                setUser={setUser}
+                getAuthHeaders={getAuthHeaders}
+              />
+            )}
           </div>
         </section>
       </main>
@@ -93,11 +184,54 @@ function SettingsTab({ children, active, onClick }) {
   );
 }
 
-function AccountSettings({ showPasswords, togglePasswordVisibility }) {
-  const handleSaveChanges = () => {
-    toast.success('Account settings saved successfully!', {
-      description: 'Your changes have been updated.'
-    });
+function AccountSettings({ user, setUser, showPasswords, togglePasswordVisibility, getAuthHeaders }) {
+  const [newEmail, setNewEmail] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSaveChanges = async () => {
+    if (newPassword && newPassword !== confirmPassword) {
+      toast.error('New passwords do not match!');
+      return;
+    }
+    if ((newEmail || newPassword) && !currentPassword) {
+      toast.error('Current password is required to make changes!');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const body = {};
+      if (newEmail) body.email = newEmail;
+      if (newPassword) body.newPassword = newPassword;
+      if (currentPassword) body.currentPassword = currentPassword;
+
+      const res = await fetch(`${API_BASE}/settings/user`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to update account');
+      }
+
+      const updatedUser = await res.json();
+      setUser(updatedUser);
+      toast.success('Account settings saved successfully!');
+      setNewEmail('');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err) {
+      console.error('Error:', err);
+      toast.error(err.message || 'Failed to save changes. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDeleteAccount = () => {
@@ -108,7 +242,6 @@ function AccountSettings({ showPasswords, togglePasswordVisibility }) {
 
   return (
     <div className="space-y-6 w-full">
-      {/* Account Information */}
       <div className="w-full">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -125,7 +258,7 @@ function AccountSettings({ showPasswords, togglePasswordVisibility }) {
             <label className="block text-sm font-medium text-card-foreground mb-2">Current Email</label>
             <input
               type="email"
-              value="alex.rivera@university.edu"
+              value={user.email}
               readOnly
               className="w-full px-3 py-2.5 border border-border rounded-lg bg-muted text-muted-foreground text-sm"
             />
@@ -135,9 +268,13 @@ function AccountSettings({ showPasswords, togglePasswordVisibility }) {
             <label className="block text-sm font-medium text-card-foreground mb-2">New Email</label>
             <input
               type="email"
-              defaultValue="newemail@university.edu"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="example@university.edu"
+              pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
               className="w-full px-3 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm bg-card text-card-foreground"
             />
+            <p className="text-xs text-muted-foreground mt-1">Must be a university email address (e.g., alex.rivera@university.edu)</p>
           </div>
           
           <div>
@@ -145,7 +282,9 @@ function AccountSettings({ showPasswords, togglePasswordVisibility }) {
             <div className="relative">
               <input
                 type={showPasswords.current ? 'text' : 'password'}
-                defaultValue="********"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="••••••••"
                 className="w-full px-3 py-2.5 pr-10 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm bg-card text-card-foreground"
               />
               <button
@@ -163,7 +302,9 @@ function AccountSettings({ showPasswords, togglePasswordVisibility }) {
             <div className="relative">
               <input
                 type={showPasswords.new ? 'text' : 'password'}
-                defaultValue="********"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="••••••••"
                 className="w-full px-3 py-2.5 pr-10 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm bg-card text-card-foreground"
               />
               <button
@@ -181,7 +322,9 @@ function AccountSettings({ showPasswords, togglePasswordVisibility }) {
             <div className="relative">
               <input
                 type={showPasswords.confirm ? 'text' : 'password'}
-                defaultValue="********"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="••••••••"
                 className="w-full px-3 py-2.5 pr-10 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm bg-card text-card-foreground"
               />
               <button
@@ -196,14 +339,14 @@ function AccountSettings({ showPasswords, togglePasswordVisibility }) {
           
           <button 
             onClick={handleSaveChanges}
-            className="bg-primary text-primary-foreground py-2.5 px-6 rounded-lg hover:bg-primary/90 hover:shadow-lg hover:scale-105 transition-all duration-200 text-sm font-medium"
+            disabled={isLoading}
+            className="bg-primary text-primary-foreground py-2.5 px-6 rounded-lg hover:bg-primary/90 hover:shadow-lg hover:scale-105 transition-all duration-200 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Save Changes
+            {isLoading ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </div>
 
-      {/* Danger Zone */}
       <div className="border border-destructive/20 rounded-xl p-6 bg-destructive/5 w-full">
         <h3 className="text-lg font-semibold text-destructive mb-2">Danger Zone</h3>
         <p className="text-sm text-destructive/80 mb-4">Irreversible account actions</p>
@@ -219,7 +362,30 @@ function AccountSettings({ showPasswords, togglePasswordVisibility }) {
   );
 }
 
-function AppearanceSettings({ isDarkMode, toggleDarkMode }) {
+function AppearanceSettings({ isDarkMode, toggleDarkMode, user, getAuthHeaders }) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleThemeChange = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch(`${API_BASE}/settings/appearance`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ darkMode: !isDarkMode }),
+      });
+
+      if (!res.ok) throw new Error('Failed to update theme');
+      
+      toggleDarkMode();
+      toast.success('Theme updated successfully!');
+    } catch (err) {
+      console.error('Error:', err);
+      toast.error('Failed to update theme');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6 w-full">
       <div className="flex items-center gap-3 mb-6">
@@ -229,7 +395,6 @@ function AppearanceSettings({ isDarkMode, toggleDarkMode }) {
         <h3 className="text-lg font-semibold text-card-foreground">Appearance Settings</h3>
       </div>
       
-      {/* Theme Selection */}
       <div className="bg-muted/30 rounded-xl border border-border p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -241,7 +406,6 @@ function AppearanceSettings({ isDarkMode, toggleDarkMode }) {
           </div>
         </div>
         
-        {/* Dark Mode Toggle */}
         <div className="flex items-start sm:items-center justify-between mb-6 gap-4">
           <div className="flex items-start sm:items-center gap-3 flex-1 min-w-0">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -254,8 +418,9 @@ function AppearanceSettings({ isDarkMode, toggleDarkMode }) {
           </div>
           
           <button
-            onClick={toggleDarkMode}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex-shrink-0 hover:scale-105 hover:shadow-lg ${
+            onClick={handleThemeChange}
+            disabled={isLoading}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex-shrink-0 hover:scale-105 hover:shadow-lg disabled:opacity-50 ${
               isDarkMode ? 'bg-primary hover:bg-primary/90' : 'bg-muted hover:bg-muted/80'
             }`}
           >
@@ -267,7 +432,6 @@ function AppearanceSettings({ isDarkMode, toggleDarkMode }) {
           </button>
         </div>
         
-        {/* Theme Preview */}
         <div className="mb-6">
           <h5 className="text-sm font-semibold text-card-foreground mb-3">Theme Preview:</h5>
           <div className="grid grid-cols-2 gap-3">
@@ -294,7 +458,6 @@ function AppearanceSettings({ isDarkMode, toggleDarkMode }) {
           </div>
         </div>
         
-        {/* Pro Tip */}
         <div className="bg-card rounded-lg border border-border p-4">
           <div className="flex items-start gap-3">
             <div className="w-6 h-6 rounded-full bg-warning/10 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -313,16 +476,42 @@ function AppearanceSettings({ isDarkMode, toggleDarkMode }) {
   );
 }
 
-function NotificationSettings() {
+function NotificationSettings({ user, setUser, getAuthHeaders }) {
   const [notifications, setNotifications] = useState({
-    skillAlerts: true,
-    projectUpdates: true,
-    weeklyReports: false,
-    recommendations: true,
+    skillAlerts: user.settings?.notifications?.skillAlerts ?? true,
+    projectUpdates: user.settings?.notifications?.projectUpdates ?? true,
+    weeklyReports: user.settings?.notifications?.weeklyReports ?? false,
+    recommendations: user.settings?.notifications?.recommendations ?? true,
   });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSave = () => {
-    toast.success('Notification preferences saved!');
+  const handleToggle = (key) => {
+    setNotifications(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch(`${API_BASE}/settings/notifications`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(notifications),
+      });
+
+      if (!res.ok) throw new Error('Failed to update notifications');
+      
+      const updatedUser = { ...user, settings: { ...user.settings, notifications } };
+      setUser(updatedUser);
+      toast.success('Notification preferences saved!');
+    } catch (err) {
+      console.error('Error:', err);
+      toast.error('Failed to save preferences');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -332,20 +521,16 @@ function NotificationSettings() {
           <Palette size={16} className="text-warning" />
         </div>
         <h3 className="text-lg font-semibold text-card-foreground">Notification Preferences</h3>
-        <p className="text-sm text-muted-foreground">Choose what updates you want to receive</p>
       </div>
       
       <div className="bg-muted/30 rounded-xl border border-border p-6 space-y-6">
-        {/* Skill Improvement Alerts */}
         <div className="flex items-center justify-between">
           <div className="space-y-0.5 flex-1 min-w-0">
             <label className="text-sm font-medium text-card-foreground">Skill Improvement Alerts</label>
-            <p className="text-sm text-muted-foreground">
-              Get notified when you reach new proficiency levels
-            </p>
+            <p className="text-sm text-muted-foreground">Get notified when you reach new proficiency levels</p>
           </div>
           <button
-            onClick={() => setNotifications({...notifications, skillAlerts: !notifications.skillAlerts})}
+            onClick={() => handleToggle('skillAlerts')}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex-shrink-0 hover:scale-105 hover:shadow-lg ${
               notifications.skillAlerts ? 'bg-primary hover:bg-primary/90' : 'bg-muted hover:bg-muted/80'
             }`}
@@ -360,16 +545,13 @@ function NotificationSettings() {
 
         <div className="border-t border-border"></div>
 
-        {/* Project Updates */}
         <div className="flex items-center justify-between">
           <div className="space-y-0.5 flex-1 min-w-0">
             <label className="text-sm font-medium text-card-foreground">Project Updates</label>
-            <p className="text-sm text-muted-foreground">
-              Receive updates about your collaborative projects
-            </p>
+            <p className="text-sm text-muted-foreground">Receive updates about your collaborative projects</p>
           </div>
           <button
-            onClick={() => setNotifications({...notifications, projectUpdates: !notifications.projectUpdates})}
+            onClick={() => handleToggle('projectUpdates')}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex-shrink-0 hover:scale-105 hover:shadow-lg ${
               notifications.projectUpdates ? 'bg-primary hover:bg-primary/90' : 'bg-muted hover:bg-muted/80'
             }`}
@@ -384,16 +566,13 @@ function NotificationSettings() {
 
         <div className="border-t border-border"></div>
 
-        {/* Weekly Progress Reports */}
         <div className="flex items-center justify-between">
           <div className="space-y-0.5 flex-1 min-w-0">
             <label className="text-sm font-medium text-card-foreground">Weekly Progress Reports</label>
-            <p className="text-sm text-muted-foreground">
-              Get a weekly summary of your skill development
-            </p>
+            <p className="text-sm text-muted-foreground">Get a weekly summary of your skill development</p>
           </div>
           <button
-            onClick={() => setNotifications({...notifications, weeklyReports: !notifications.weeklyReports})}
+            onClick={() => handleToggle('weeklyReports')}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex-shrink-0 hover:scale-105 hover:shadow-lg ${
               notifications.weeklyReports ? 'bg-primary hover:bg-primary/90' : 'bg-muted hover:bg-muted/80'
             }`}
@@ -408,16 +587,13 @@ function NotificationSettings() {
 
         <div className="border-t border-border"></div>
 
-        {/* AI Recommendations */}
         <div className="flex items-center justify-between">
           <div className="space-y-0.5 flex-1 min-w-0">
             <label className="text-sm font-medium text-card-foreground">AI Recommendations</label>
-            <p className="text-sm text-muted-foreground">
-              Receive personalized skill suggestions
-            </p>
+            <p className="text-sm text-muted-foreground">Receive personalized skill suggestions</p>
           </div>
           <button
-            onClick={() => setNotifications({...notifications, recommendations: !notifications.recommendations})}
+            onClick={() => handleToggle('recommendations')}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex-shrink-0 hover:scale-105 hover:shadow-lg ${
               notifications.recommendations ? 'bg-primary hover:bg-primary/90' : 'bg-muted hover:bg-muted/80'
             }`}
@@ -433,9 +609,10 @@ function NotificationSettings() {
         <div className="pt-4">
           <button 
             onClick={handleSave}
-            className="bg-primary text-primary-foreground py-2.5 px-6 rounded-lg hover:bg-primary/90 hover:shadow-lg hover:scale-105 transition-all duration-200 text-sm font-medium"
+            disabled={isLoading}
+            className="bg-primary text-primary-foreground py-2.5 px-6 rounded-lg hover:bg-primary/90 hover:shadow-lg hover:scale-105 transition-all duration-200 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Save Preferences
+            {isLoading ? 'Saving...' : 'Save Preferences'}
           </button>
         </div>
       </div>
@@ -443,15 +620,41 @@ function NotificationSettings() {
   );
 }
 
-function PrivacySettings() {
+function PrivacySettings({ user, setUser, getAuthHeaders }) {
   const [privacy, setPrivacy] = useState({
-    profileVisible: true,
-    skillsVisible: true,
-    projectsVisible: true,
+    profileVisible: user.settings?.privacy?.profileVisible ?? true,
+    skillsVisible: user.settings?.privacy?.skillsVisible ?? true,
+    projectsVisible: user.settings?.privacy?.projectsVisible ?? true,
   });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSave = () => {
-    toast.success('Privacy settings saved!');
+  const handleToggle = (key) => {
+    setPrivacy(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch(`${API_BASE}/settings/privacy`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(privacy),
+      });
+
+      if (!res.ok) throw new Error('Failed to update privacy settings');
+      
+      const updatedUser = { ...user, settings: { ...user.settings, privacy } };
+      setUser(updatedUser);
+      toast.success('Privacy settings saved!');
+    } catch (err) {
+      console.error('Error:', err);
+      toast.error('Failed to save privacy settings');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDownloadData = () => {
@@ -471,7 +674,6 @@ function PrivacySettings() {
         <h3 className="text-lg font-semibold text-card-foreground">Privacy Settings</h3>
       </div>
       
-      {/* Privacy Controls */}
       <div className="bg-muted/30 rounded-xl border border-border p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -483,17 +685,14 @@ function PrivacySettings() {
           </div>
         </div>
         
-    <div className="space-y-6">
-          {/* Profile Visibility */}
+        <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <label className="text-sm font-medium text-card-foreground">Profile Visibility</label>
-              <p className="text-sm text-muted-foreground">
-                Allow others to view your profile
-              </p>
+              <p className="text-sm text-muted-foreground">Allow others to view your profile</p>
             </div>
             <button
-              onClick={() => setPrivacy({...privacy, profileVisible: !privacy.profileVisible})}
+              onClick={() => handleToggle('profileVisible')}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 hover:scale-105 hover:shadow-lg ${
                 privacy.profileVisible ? 'bg-primary hover:bg-primary/90' : 'bg-muted hover:bg-muted/80'
               }`}
@@ -508,16 +707,13 @@ function PrivacySettings() {
 
           <div className="border-t border-border"></div>
 
-          {/* Show Skills */}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <label className="text-sm font-medium text-card-foreground">Show Skills</label>
-              <p className="text-sm text-muted-foreground">
-                Display your skills on your public profile
-              </p>
+              <p className="text-sm text-muted-foreground">Display your skills on your public profile</p>
             </div>
             <button
-              onClick={() => setPrivacy({...privacy, skillsVisible: !privacy.skillsVisible})}
+              onClick={() => handleToggle('skillsVisible')}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 hover:scale-105 hover:shadow-lg ${
                 privacy.skillsVisible ? 'bg-primary hover:bg-primary/90' : 'bg-muted hover:bg-muted/80'
               }`}
@@ -532,16 +728,13 @@ function PrivacySettings() {
 
           <div className="border-t border-border"></div>
 
-          {/* Show Projects */}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <label className="text-sm font-medium text-card-foreground">Show Projects</label>
-              <p className="text-sm text-muted-foreground">
-                Display your project history publicly
-              </p>
+              <p className="text-sm text-muted-foreground">Display your project history publicly</p>
             </div>
             <button
-              onClick={() => setPrivacy({...privacy, projectsVisible: !privacy.projectsVisible})}
+              onClick={() => handleToggle('projectsVisible')}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 hover:scale-105 hover:shadow-lg ${
                 privacy.projectsVisible ? 'bg-primary hover:bg-primary/90' : 'bg-muted hover:bg-muted/80'
               }`}
@@ -557,15 +750,15 @@ function PrivacySettings() {
           <div className="pt-4">
             <button 
               onClick={handleSave}
-              className="bg-primary text-primary-foreground py-2.5 px-6 rounded-lg hover:bg-primary/90 transition text-sm font-medium"
+              disabled={isLoading}
+              className="bg-primary text-primary-foreground py-2.5 px-6 rounded-lg hover:bg-primary/90 transition text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Save Privacy Settings
+              {isLoading ? 'Saving...' : 'Save Privacy Settings'}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Data Management */}
       <div className="bg-muted/30 rounded-xl border border-border p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center">
