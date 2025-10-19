@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import ThemeToggle from '../components/ThemeToggle';
-import { Eye, Lock } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import girl2 from '../assets/girl2.png';
 import logo from '../assets/logo.png';
 
@@ -15,6 +15,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const googleButtonRef = useRef(null);
 
   // Initialize Google Login
@@ -162,7 +163,7 @@ const Login = () => {
                 value={loginInput}
                 onChange={(e) => setLoginInput(e.target.value)}
                 placeholder="Enter email or student ID"
-                className={`w-full px-4 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-gray-900 dark:text-white bg-white dark:bg-gray-700 ${
+                className={`w-full px-4 py-2.5 text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-800 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition ${
                   errors.loginInput ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                 }`}
               />
@@ -178,7 +179,7 @@ const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="······"
-                  className={`w-full px-4 py-2.5 pr-10 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-gray-900 dark:text-white bg-white dark:bg-gray-700 ${
+                  className={`w-full px-4 py-2.5 pr-10 text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-800 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition ${
                     errors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
                 />
@@ -188,18 +189,30 @@ const Login = () => {
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
                   title={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? <Eye size={18} /> : <Lock size={18} />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
               {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
             </div>
 
-            {/* Forgot Password */}
-            <div className="flex justify-end">
-              <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
-                Forgot Password?
-              </Link>
-            </div>
+             {/* Remember Me and Forgot Password */}
+             <div className="flex items-center justify-between">
+               <div className="flex items-center">
+                 <input
+                   type="checkbox"
+                   id="rememberMe"
+                   checked={rememberMe}
+                   onChange={(e) => setRememberMe(e.target.checked)}
+                   className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                 />
+                 <label htmlFor="rememberMe" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                   Remember me
+                 </label>
+               </div>
+               <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
+                 Forgot Password?
+               </Link>
+             </div>
 
             {/* Login Button */}
             <button

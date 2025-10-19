@@ -3,7 +3,11 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import authRoutes from './routes/auth.js';
 import passwordResetRoutes from './routes/passwordReset.js';
-import { connectDB } from "./config/db.js";
+import profileRoutes from './routes/profile.js';
+import roleHistoryRoutes from './routes/roleHistory.js';
+import settingsRoutes from './routes/settings.js';
+
+import { connectDB } from './config/db.js';
 
 dotenv.config();
 
@@ -20,12 +24,16 @@ app.use(cors({
 
 app.use(express.json());
 
-app.use("/api/users", authRoutes);
-app.use("/api/auth", passwordResetRoutes);
+// Routes
+app.use('/api/users', authRoutes);
+app.use('/api/auth', passwordResetRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/role-history', roleHistoryRoutes);
+app.use('/api/settings', settingsRoutes);
 
-// Health check endpoint (test this first to verify server is running)
+// Health check endpoint
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
+  res.status(200).json({
     message: 'Server is OK',
     timestamp: new Date().toISOString()
   });
@@ -36,7 +44,7 @@ const startServer = async () => {
   try {
     // Connect to MongoDB first
     await connectDB();
-    
+
     // Only start the server after DB connection succeeds
     app.listen(PORT, () => {
       console.log(`✅ Server is running on port ${PORT}`);
@@ -48,5 +56,5 @@ const startServer = async () => {
   }
 };
 
-// Start the server
+
 startServer();

@@ -1,9 +1,22 @@
+import React, { useState, useEffect } from 'react';
 import DashboardNav from '../components/dashboardNAv';
-import { ArrowRight, Gift, Award, Activity, Clock, History, Menu, AlertCircle, Briefcase, Lightbulb, Target, TrendingUp } from 'lucide-react';
-import { useState } from 'react';
+import { 
+  TrendingUp, 
+  Users, 
+  Plus, 
+  ChevronDown, 
+  ChevronRight, 
+  Trash2,
+  User,
+  X,
+  Briefcase
+} from 'lucide-react';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // Mock data for user skills
 const mockUserSkills = [
@@ -82,28 +95,72 @@ const mockCareerMatches = [
 ];
 
 const recent = [
-  { title: 'JavaScript Mastery', desc: 'Reached 85% proficiency', time: '2 days ago', icon: Award },
-  { title: 'Project Completed', desc: 'E-Commerce Platform', time: '1 week ago', icon: Gift },
-  { title: 'New Skill Added', desc: 'TypeScript', time: '2 weeks ago', icon: Activity },
+  { title: 'JavaScript Mastery', desc: 'Reached 85% proficiency', time: '2 days ago', icon: TrendingUp },
+  { title: 'Project Completed', desc: 'E-Commerce Platform', time: '1 week ago', icon: Briefcase },
+  { title: 'New Skill Added', desc: 'TypeScript', time: '2 weeks ago', icon: Users },
 ];
 
 export default function Dashboard() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { isDarkMode, toggleDarkMode } = useTheme();
+
+  // Fetch user data
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          navigate('/');
+          return;
+        }
+
+        const response = await axios.get(`${API_BASE_URL}/settings/user`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        
+        setUserData(response.data);
+      } catch (err) {
+        console.error('Error fetching user:', err);
+        toast.error('Failed to load user data');
+        navigate('/');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Dynamic calculations
   const skillsMastered = mockUserSkills.filter(s => s.proficiency >= 80).length;
   const skillsInProgress = mockUserSkills.filter(s => s.proficiency >= 50 && s.proficiency < 80).length;
   const skillGaps = mockRecommendations.length;
-  const projects = 4; // From mockRoleHistory
+  const projects = 4;
 
   // Helper functions
   const getProficiencyColor = (proficiency) => {
-    if (proficiency >= 80) return 'bg-[#10B981]';  // Green - Expert
-    if (proficiency >= 60) return 'bg-[#14B8A6]';  // Teal - Advanced
-    if (proficiency >= 40) return 'bg-[#F59E0B]';  // Orange - Intermediate
-    return 'bg-[#64748B]';                          // Gray - Beginner
+    if (proficiency >= 80) return 'bg-[#10B981]';
+    if (proficiency >= 60) return 'bg-[#14B8A6]';
+    if (proficiency >= 40) return 'bg-[#F59E0B]';
+    return 'bg-[#64748B]';
   };
 
   const getProficiencyLabel = (proficiency) => {
@@ -154,14 +211,15 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       <DashboardNav 
-        userName="Alex Rivera" 
+        userName={userData ? `${userData.firstName} ${userData.lastName}` : 'User'}
+        user={userData}
         isMobileMenuOpen={isMobileMenuOpen} 
         setIsMobileMenuOpen={setIsMobileMenuOpen}
       />
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <header className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Welcome back, Alex Rivera!</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Welcome back, {userData?.firstName}!</h1>
           <p className="mt-1 text-sm text-muted-foreground">Here's your skill development overview</p>
         </header>
 
@@ -170,7 +228,7 @@ export default function Dashboard() {
           <SummaryCard 
             label="Skills Mastered" 
             value={skillsMastered} 
-            icon={<Award size={20} />} 
+            icon={TrendingUp} 
             color="text-success"
             bgColor="bg-success/10"
             onClick={() => navigate('/profile')}
@@ -178,7 +236,7 @@ export default function Dashboard() {
           <SummaryCard 
             label="In Progress" 
             value={skillsInProgress} 
-            icon={<Activity size={20} />} 
+            icon={Users} 
             color="text-warning"
             bgColor="bg-warning/10"
             onClick={() => navigate('/profile')}
@@ -186,7 +244,7 @@ export default function Dashboard() {
           <SummaryCard 
             label="Skill Gaps" 
             value={skillGaps} 
-            icon={<AlertCircle size={20} />} 
+            icon={X} 
             color="text-primary"
             bgColor="bg-primary/10"
             onClick={() => navigate('/suggestions')}
@@ -194,7 +252,7 @@ export default function Dashboard() {
           <SummaryCard 
             label="Projects" 
             value={projects} 
-            icon={<Briefcase size={20} />} 
+            icon={Briefcase} 
             color="text-secondary"
             bgColor="bg-secondary/10"
             onClick={() => navigate('/roles')}
@@ -206,7 +264,7 @@ export default function Dashboard() {
           <section className="lg:col-span-2 bg-card rounded-xl border border-border p-6 hover:shadow-md transition-all duration-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <Target size={20} className="text-primary" />
+                <TrendingUp size={20} className="text-primary" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-card-foreground">Skill Proficiency Map</h2>
@@ -223,9 +281,7 @@ export default function Dashboard() {
                       <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">{skill.category}</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className="hidden sm:inline font-medium" style={{ color: getProficiencyColor(skill.proficiency).replace('bg-', 'text-') }}>
-                        {getProficiencyLabel(skill.proficiency)}
-                      </span>
+                      <span className="hidden sm:inline font-medium">{getProficiencyLabel(skill.proficiency)}</span>
                       <span className="font-semibold">{skill.proficiency}%</span>
                     </div>
                   </div>
@@ -242,9 +298,9 @@ export default function Dashboard() {
             <div className="mt-6">
               <button 
                 onClick={handleViewAllSkills}
-                className="w-full sm:w-auto inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-card-foreground border border-border rounded-lg hover:bg-muted transition-colors"
+                className="w-full sm:w-auto inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-card-foreground border border-border rounded-[12px] hover:bg-muted transition-colors"
               >
-                View All Skills <ArrowRight size={16} />
+                View All Skills <ChevronRight size={16} />
               </button>
             </div>
           </section>
@@ -253,7 +309,7 @@ export default function Dashboard() {
           <aside className="bg-card rounded-xl border border-border p-6 hover:shadow-md transition-all duration-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
-                <Activity size={20} className="text-secondary" />
+                <TrendingUp size={20} className="text-secondary" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-card-foreground">Recent Activity</h2>
@@ -278,9 +334,9 @@ export default function Dashboard() {
             
             <button 
               onClick={handleViewHistory}
-              className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-card-foreground border border-border rounded-lg hover:bg-muted transition-colors"
+              className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-card-foreground border border-border rounded-[12px] hover:bg-muted transition-colors"
             >
-              View History <History size={16} />
+              View History <ChevronRight size={16} />
             </button>
           </aside>
         </div>
@@ -290,7 +346,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center">
-                <Lightbulb size={20} className="text-warning" />
+                <TrendingUp size={20} className="text-warning" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-card-foreground">Recommended for You</h3>
@@ -301,7 +357,7 @@ export default function Dashboard() {
               onClick={handleViewAllRecommendations}
               className="hidden sm:inline-flex items-center gap-2 px-3 py-2 text-sm text-card-foreground border border-border rounded-[12px] hover:bg-muted transition-colors"
             >
-              View All <ArrowRight size={16} />
+              View All <ChevronRight size={16} />
             </button>
           </div>
 
@@ -310,7 +366,7 @@ export default function Dashboard() {
               <div key={recommendation.id} className="bg-muted/30 rounded-xl border border-border p-6 hover:shadow-sm transition-all duration-200">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center">
-                    <Lightbulb size={20} className="text-white" />
+                    <TrendingUp size={20} className="text-white" />
                   </div>
                   <div>
                     <h4 className="text-lg font-semibold text-card-foreground">{recommendation.skillName}</h4>
@@ -331,7 +387,7 @@ export default function Dashboard() {
                   onClick={() => handleLearnMore(recommendation)}
                   className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-card-foreground border border-border rounded-lg hover:bg-secondary transition-colors"
                 >
-                  Learn More <ArrowRight size={16} />
+                  Learn More <ChevronRight size={16} />
                 </button>
               </div>
             ))}
@@ -354,7 +410,7 @@ export default function Dashboard() {
               onClick={handleExploreCareers}
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-[12px] hover:bg-primary/90 transition-colors"
             >
-              Explore Careers <ArrowRight size={16} />
+              Explore Careers <ChevronRight size={16} />
             </button>
           </div>
 
@@ -392,7 +448,7 @@ export default function Dashboard() {
   );
 }
 
-function SummaryCard({ label, value, icon, color, bgColor, onClick }) {
+function SummaryCard({ label, value, icon: Icon, color, bgColor, onClick }) {
   return (
     <div 
       onClick={onClick}
@@ -403,10 +459,8 @@ function SummaryCard({ label, value, icon, color, bgColor, onClick }) {
         <div className="text-3xl font-bold text-card-foreground">{value}</div>
       </div>
       <div className={`w-12 h-12 rounded-xl ${bgColor} ${color} grid place-items-center`}>
-        {icon}
+        <Icon size={20} />
       </div>
     </div>
   );
 }
-
-

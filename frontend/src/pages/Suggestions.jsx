@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Lightbulb, 
@@ -14,6 +14,9 @@ import {
 import { toast } from 'sonner';
 import DashboardNav from '../components/dashboardNAv.jsx';
 import { useTheme } from '../contexts/ThemeContext';
+import axios from 'axios';
+
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // Mock data for recommendations
 const mockRecommendations = [
@@ -89,6 +92,39 @@ export default function Suggestions() {
   const [goals, setGoals] = useState([]);
   const [hiddenRecommendations, setHiddenRecommendations] = useState(new Set());
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch user data
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          navigate('/');
+          return;
+        }
+
+        const response = await axios.get(`${API_BASE_URL}/settings/user`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        
+        setUserData(response.data);
+      } catch (err) {
+        console.error('Error fetching user:', err);
+        toast.error('Failed to load user data');
+        navigate('/');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [navigate]);
 
   const visibleRecommendations = recommendations.filter(
     rec => !hiddenRecommendations.has(rec.id)
@@ -149,10 +185,22 @@ export default function Suggestions() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading suggestions...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <DashboardNav 
-        userName="Alex Rivera"
+        userName={userData ? `${userData.firstName} ${userData.lastName}` : 'User'}
+        user={userData}
         isMobileMenuOpen={isMobileMenuOpen}
         setIsMobileMenuOpen={setIsMobileMenuOpen}
       />
