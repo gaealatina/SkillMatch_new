@@ -12,7 +12,7 @@ const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || "7d" });
 };
 
-// ===================== SIGNUP ROUTE =====================
+//SIGNUP ROUTE 
 router.post("/signup", async (req, res) => {
   try {
     console.log("Signup request received:", req.body);
@@ -86,7 +86,7 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-// ===================== LOGIN ROUTE (Email or Student ID) =====================
+//LOGIN ROUTE (Email or Student ID) 
 router.post("/login", async (req, res) => {
   try {
     console.log("Login request received:", { loginInput: req.body.email });
@@ -132,7 +132,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// ===================== GET CURRENT USER =====================
+// GET CURRENT USER 
 router.get("/me", protect, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -145,7 +145,7 @@ router.get("/me", protect, async (req, res) => {
   }
 });
 
-// ===================== GOOGLE SIGN-IN =====================
+//GOOGLE SIGN-IN 
 router.post("/google", async (req, res) => {
   try {
     const { credential } = req.body;
