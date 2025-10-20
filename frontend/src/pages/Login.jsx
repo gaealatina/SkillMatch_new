@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, Users, Zap, X, CheckCircle, Shield, Eye, EyeOff, Lock, Database, Mail, Menu } from 'lucide-react';
+import { Eye, Lock } from 'lucide-react';
 import girl2 from '../assets/girl2.png';
 import logo from '../assets/logo.png';
 
 const Login = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [loginInput, setLoginInput] = useState(''); // can be email or student ID
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -14,6 +14,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const googleButtonRef = useRef(null);
 
+  // Initialize Google Login
   useEffect(() => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     if (!window.google || !clientId) {
@@ -35,6 +36,7 @@ const Login = () => {
     }
   }, []);
 
+  // Handle Google Login
   const handleGoogleLogin = async (response) => {
     try {
       setIsLoading(true);
@@ -53,11 +55,8 @@ const Login = () => {
         return;
       }
 
-      // Store token and user
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-
-      // Redirect to dashboard
       navigate('/dashboard');
     } catch (error) {
       console.error('Google login error:', error);
@@ -67,18 +66,16 @@ const Login = () => {
     }
   };
 
+  // Handle Manual Login (email or student ID)
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
 
-    if (!email) newErrors.email = 'Email is required';
+    if (!loginInput) newErrors.loginInput = 'Email or Student ID is required';
     if (!password) newErrors.password = 'Password is required';
 
     setErrors(newErrors);
-
-    if (Object.keys(newErrors).length > 0) {
-      return;
-    }
+    if (Object.keys(newErrors).length > 0) return;
 
     try {
       setIsLoading(true);
@@ -86,10 +83,8 @@ const Login = () => {
 
       const response = await fetch('/api/users/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: loginInput, password }), // backend accepts both
       });
 
       const data = await response.json();
@@ -99,11 +94,8 @@ const Login = () => {
         return;
       }
 
-      // Store token and user
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-
-      // Redirect to dashboard
       navigate('/dashboard');
     } catch (error) {
       console.error('Login error:', error);
@@ -140,7 +132,6 @@ const Login = () => {
       <div className="w-full max-w-6xl bg-white rounded-2xl shadow-xl overflow-hidden flex mt-24">
         {/* Left Side - Login Form */}
         <div className="w-full lg:w-5/12 p-8 lg:p-12 flex flex-col justify-center">
-          {/* Welcome Back */}
           <div className="mb-8 text-center lg:text-left">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back</h1>
             <p className="text-gray-600 text-sm">
@@ -160,18 +151,18 @@ const Login = () => {
             {/* Email / Student ID */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email / Student ID
+                Email or Student ID
               </label>
               <input
                 type="text"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you.name@example.edu"
+                value={loginInput}
+                onChange={(e) => setLoginInput(e.target.value)}
+                placeholder="Enter email or student ID"
                 className={`w-full px-4 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition ${
-                  errors.email ? 'border-red-500' : 'border-gray-300'
+                  errors.loginInput ? 'border-red-500' : 'border-gray-300'
                 }`}
               />
-              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+              {errors.loginInput && <p className="text-red-500 text-xs mt-1">{errors.loginInput}</p>}
             </div>
 
             {/* Password */}
@@ -190,7 +181,7 @@ const Login = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-900 font-bold text-lg"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-900"
                   title={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <Eye size={18} /> : <Lock size={18} />}
@@ -236,21 +227,17 @@ const Login = () => {
             </div>
           </div>
 
-          {/* OAuth Options */}
-          <div className="space-y-3">
-            <div ref={googleButtonRef} className="w-full flex items-center justify-center"></div>
-          </div>
+          {/* Google Login Button */}
+          <div ref={googleButtonRef} className="w-full flex items-center justify-center"></div>
         </div>
 
-        {/* Right Side - Hero Image */}
+        {/* Right Side - Image */}
         <div className="hidden lg:flex lg:w-7/12 bg-gradient-to-br from-blue-600 via-blue-500 to-teal-400 items-center justify-center p-12 relative">
           <div className="text-center text-white max-w-md z-10">
             <h2 className="text-3xl font-bold mb-4">Discover Your Potential</h2>
             <p className="text-lg text-blue-50 mb-8">
               Map your skills, track your progress, and unlock new opportunities with SkillMatch.
             </p>
-
-            {/* Image Container */}
             <div className="w-full flex justify-center">
               <img
                 src={girl2}

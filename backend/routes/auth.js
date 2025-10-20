@@ -12,7 +12,7 @@ const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || "7d" });
 };
 
-// Signup Route
+// ===================== SIGNUP ROUTE =====================
 router.post("/signup", async (req, res) => {
   try {
     console.log("Signup request received:", req.body);
@@ -73,7 +73,6 @@ router.post("/signup", async (req, res) => {
     // Generate token
     const token = generateToken(user._id);
 
-    // Return user data (password excluded via toJSON method)
     console.log("User created successfully:", user._id);
     return res.status(201).json({
       success: true,
@@ -87,20 +86,26 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-// Login Route
+// ===================== LOGIN ROUTE (Email or Student ID) =====================
 router.post("/login", async (req, res) => {
   try {
-    console.log("Login request received:", { email: req.body.email });
+    console.log("Login request received:", { loginInput: req.body.email });
 
     const { email, password } = req.body;
 
     // Validation
     if (!email || !password) {
-      return res.status(400).json({ message: "Please provide email and password" });
+      return res.status(400).json({ message: "Please provide your email or student ID and password" });
     }
 
-    // Find user
-    const user = await User.findOne({ email: email.toLowerCase() });
+    // Find user by email OR student ID
+    const user = await User.findOne({
+      $or: [
+        { email: email.toLowerCase() },
+        { id: email } // allows login using student ID
+      ]
+    });
+
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -127,7 +132,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// Get Current User (Protected)
+// ===================== GET CURRENT USER =====================
 router.get("/me", protect, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -140,7 +145,7 @@ router.get("/me", protect, async (req, res) => {
   }
 });
 
-// Google Sign-In
+// ===================== GOOGLE SIGN-IN =====================
 router.post("/google", async (req, res) => {
   try {
     const { credential } = req.body;
@@ -167,7 +172,6 @@ router.post("/google", async (req, res) => {
     // Find or create user
     let user = await User.findOne({ email });
     if (!user) {
-      // Generate random ID for Google sign-ins
       const randomID = `G-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       
       user = await User.create({
