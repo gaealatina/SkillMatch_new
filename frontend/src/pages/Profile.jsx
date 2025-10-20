@@ -432,6 +432,13 @@ function Tab({ children, active, onClick }) {
 }
 
 function SkillRow({ skill, onDelete }) {
+  const getProgressColor = (level) => {
+    if (level <= 25) return 'bg-red-500';
+    if (level <= 50) return 'bg-orange-500';
+    if (level <= 75) return 'bg-yellow-500';
+    return 'bg-green-500';
+  };
+
   return (
     <div className="group bg-muted/30 rounded-lg p-4 border border-border hover:bg-muted/50 transition-colors">
       <div className="flex items-center justify-between mb-2">
@@ -447,7 +454,10 @@ function SkillRow({ skill, onDelete }) {
         </div>
       </div>
       <div className="w-full bg-muted rounded-full h-2">
-        <div className="h-2 rounded-full bg-success" style={{ width: `${skill.level}%` }} />
+        <div 
+          className={`h-2 rounded-full ${getProgressColor(skill.level)}`} 
+          style={{ width: `${skill.level}%` }} 
+        />
       </div>
     </div>
   );
