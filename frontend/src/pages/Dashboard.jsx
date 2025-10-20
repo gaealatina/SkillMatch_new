@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import DashboardNav from '../components/dashboardNAv';
+import DashboardNav from '../components/dashboardNav';
 import { 
   TrendingUp, 
   Users, 

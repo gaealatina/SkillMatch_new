@@ -5,85 +5,108 @@ import { protect } from "../middleware/auth.js";
 const router = express.Router();
 
 
+const handleError = (res, error, customMessage = "Server error") => {
+  console.error(customMessage, error);
+  
+  if (error.name === 'ValidationError') {
+    return res.status(400).json({ 
+      message: 'Validation error', 
+      details: Object.values(error.errors).map(err => err.message) 
+    });
+  }
+  
+  if (error.name === 'CastError') {
+    return res.status(400).json({ message: 'Invalid ID format' });
+  }
+  
+  return res.status(500).json({ message: customMessage });
+};
+
 router.get("/", protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id)
+      .select('-password') // Exclude password
+      .lean(); // Return plain JavaScript object
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    return res.status(200).json({
+   
+    const responseData = {
       success: true,
       user: {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        course: user.course,
-        yearLevel: user.yearLevel,
-        profilePicture: user.profilePicture,
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        course: user.course || null,
+        yearLevel: user.yearLevel || null,
+        profilePicture: user.profilePicture || null,
       },
-      skills: user.skills,
-      projectHistory: user.projectHistory,
-      recommendations: user.recommendations,
-    });
+      skills: user.skills || [],
+      projectHistory: user.projectHistory || [],
+      recommendations: user.recommendations || [],
+    };
+
+    return res.status(200).json(responseData);
   } catch (error) {
-    console.error("Error fetching profile:", error);
-    return res.status(500).json({ message: "Server error" });
+    return handleError(res, error, "Error fetching profile:");
   }
 });
-
 
 router.patch("/user", protect, async (req, res) => {
   try {
     const { firstName, lastName, email, course, yearLevel } = req.body;
 
-
-    if (!firstName || !lastName || !email) {
+    // Validation
+    if (!firstName?.trim() || !lastName?.trim() || !email?.trim()) {
       return res.status(400).json({ message: "First name, last name, and email are required" });
     }
 
     const user = await User.findById(req.user._id);
-
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-
-    if (email !== user.email) {
-      const existingEmail = await User.findOne({ email: email.toLowerCase() });
-      if (existingEmail) {
+   
+    if (email.toLowerCase() !== user.email) {
+      const existingUser = await User.findOne({ 
+        email: email.toLowerCase(),
+        _id: { $ne: req.user._id } 
+      });
+      if (existingUser) {
         return res.status(400).json({ message: "Email already in use" });
       }
     }
 
-
-    user.firstName = firstName;
-    user.lastName = lastName;
-    user.email = email.toLowerCase();
-    user.course = course || null;
+ 
+    user.firstName = firstName.trim();
+    user.lastName = lastName.trim();
+    user.email = email.toLowerCase().trim();
+    user.course = course?.trim() || null;
     user.yearLevel = yearLevel || null;
 
     await user.save();
+
+   
+    const updatedUser = await User.findById(req.user._id).select('-password');
 
     return res.status(200).json({
       success: true,
       message: "Profile updated successfully",
       user: {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        course: user.course,
-        yearLevel: user.yearLevel,
-        profilePicture: user.profilePicture,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        email: updatedUser.email,
+        course: updatedUser.course,
+        yearLevel: updatedUser.yearLevel,
+        profilePicture: updatedUser.profilePicture,
       },
     });
   } catch (error) {
-    console.error("Error updating profile:", error);
-    return res.status(500).json({ message: "Server error" });
+    return handleError(res, error, "Error updating profile:");
   }
 });
-
 
 router.patch("/avatar", protect, async (req, res) => {
   try {
@@ -93,22 +116,31 @@ router.patch("/avatar", protect, async (req, res) => {
       return res.status(400).json({ message: "Profile picture data is required" });
     }
 
- 
-    const allowedFormats = ["data:image/jpeg", "data:image/jpg", "data:image/png", "data:image/gif", "data:image/webp", "data:image/svg+xml"];
-    const isValidFormat = allowedFormats.some(format => profilePicture.startsWith(format));
+   
+    const allowedFormats = [
+      "data:image/jpeg", 
+      "data:image/jpg", 
+      "data:image/png", 
+      "data:image/gif", 
+      "data:image/webp", 
+      "data:image/svg+xml"
+    ];
     
+    const isValidFormat = allowedFormats.some(format => profilePicture.startsWith(format));
     if (!isValidFormat) {
-      return res.status(400).json({ message: "Invalid image format. Supported formats: JPG, PNG, GIF, WEBP, SVG" });
+      return res.status(400).json({ 
+        message: "Invalid image format. Supported formats: JPG, PNG, GIF, WEBP, SVG" 
+      });
     }
 
-   
-    const sizeInMB = Buffer.byteLength(profilePicture, 'utf8') / (1024 * 1024);
-    if (sizeInMB > 1024) { // 1GB = 1024MB
-      return res.status(400).json({ message: "Image size must be less than 1GB" });
+    
+    const base64Data = profilePicture.split(',')[1];
+    const sizeInMB = Buffer.from(base64Data, 'base64').length / (1024 * 1024);
+    if (sizeInMB > 10) {
+      return res.status(400).json({ message: "Image size must be less than 10MB" });
     }
 
     const user = await User.findById(req.user._id);
-
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -116,7 +148,7 @@ router.patch("/avatar", protect, async (req, res) => {
     user.profilePicture = profilePicture;
     await user.save();
 
-    console.log("Profile picture saved successfully for user:", user._id);
+    console.log("Profile picture updated for user:", user._id);
 
     return res.status(200).json({
       success: true,
@@ -129,51 +161,82 @@ router.patch("/avatar", protect, async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error updating profile picture:", error);
-    return res.status(500).json({ message: "Server error" });
+    return handleError(res, error, "Error updating profile picture:");
   }
 });
-
 
 router.post("/skills", protect, async (req, res) => {
   try {
     const { name, level, category } = req.body;
 
- 
-    if (!name || level === undefined || !category) {
-      return res.status(400).json({ message: "Please provide all required fields" });
+    console.log("🔍 Received skill data:", { name, level, category }); // Debug log
+
+    
+    if (!name?.trim() || level === undefined || level === null || !category?.trim()) {
+      console.log("❌ Missing required fields");
+      return res.status(400).json({ 
+        message: "Please provide all required fields: name, level, and category" 
+      });
     }
 
-    if (level < 0 || level > 100) {
-      return res.status(400).json({ message: "Level must be between 0 and 100" });
+    if (typeof level !== 'number' || level < 0 || level > 100) {
+      console.log("❌ Invalid level:", level);
+      return res.status(400).json({ 
+        message: "Level must be a number between 0 and 100" 
+      });
+    }
+
+   
+    const allowedCategories = ["PROGRAMMING", "WEB DEVELOPMENT", "UI/UX DESIGN", "FRONTEND", "BACKEND", "TOOLS", "OTHER"];
+    if (!allowedCategories.includes(category)) {
+      console.log("❌ Invalid category:", category);
+      return res.status(400).json({ 
+        message: `Invalid category. Allowed categories: ${allowedCategories.join(', ')}` 
+      });
     }
 
     const user = await User.findById(req.user._id);
+    if (!user) {
+      console.log("❌ User not found");
+      return res.status(404).json({ message: "User not found" });
+    }
 
-  
-    const skillExists = user.skills.some((s) => s.name.toLowerCase() === name.toLowerCase());
+    
+    const skillExists = user.skills.some(
+      skill => skill.name.toLowerCase() === name.toLowerCase().trim()
+    );
+    
     if (skillExists) {
+      console.log("❌ Skill already exists:", name);
       return res.status(400).json({ message: "Skill already exists" });
     }
 
-    user.skills.push({
-      name,
-      level,
-      category,
-    });
+   
+    const newSkill = {
+      name: name.trim(),
+      level: Math.round(level),
+      category: category.trim()
+    };
 
+    console.log("✅ Adding new skill:", newSkill);
+    user.skills.push(newSkill);
     await user.save();
+
+    
+    const addedSkill = user.skills[user.skills.length - 1];
+    console.log("✅ Skill added successfully:", addedSkill);
 
     return res.status(201).json({
       success: true,
       message: "Skill added successfully",
-      skill: user.skills[user.skills.length - 1],
+      skill: addedSkill,
     });
   } catch (error) {
-    console.error("Error adding skill:", error);
-    return res.status(500).json({ message: "Server error" });
+    console.error("💥 Error adding skill:", error);
+    return handleError(res, error, "Error adding skill:");
   }
 });
+
 
 
 router.patch("/skills/:skillId", protect, async (req, res) => {
@@ -186,8 +249,11 @@ router.patch("/skills/:skillId", protect, async (req, res) => {
     }
 
     const user = await User.findById(req.user._id);
-    const skill = user.skills.id(skillId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
+    const skill = user.skills.id(skillId);
     if (!skill) {
       return res.status(404).json({ message: "Skill not found" });
     }
@@ -203,19 +269,20 @@ router.patch("/skills/:skillId", protect, async (req, res) => {
       skill,
     });
   } catch (error) {
-    console.error("Error updating skill:", error);
-    return res.status(500).json({ message: "Server error" });
+    return handleError(res, error, "Error updating skill:");
   }
 });
-
 
 router.delete("/skills/:skillId", protect, async (req, res) => {
   try {
     const { skillId } = req.params;
 
     const user = await User.findById(req.user._id);
-    const skill = user.skills.id(skillId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
+    const skill = user.skills.id(skillId);
     if (!skill) {
       return res.status(404).json({ message: "Skill not found" });
     }
@@ -228,167 +295,10 @@ router.delete("/skills/:skillId", protect, async (req, res) => {
       message: "Skill deleted successfully",
     });
   } catch (error) {
-    console.error("Error deleting skill:", error);
-    return res.status(500).json({ message: "Server error" });
+    return handleError(res, error, "Error deleting skill:");
   }
 });
 
 
-router.post("/projects", protect, async (req, res) => {
-  try {
-    const { project, role, date, team, skills, score, description } = req.body;
-
-
-    if (!project || !role || !date || !team || score === undefined) {
-      return res.status(400).json({ message: "Please provide all required fields" });
-    }
-
-    if (score < 0 || score > 100) {
-      return res.status(400).json({ message: "Score must be between 0 and 100" });
-    }
-
-    const user = await User.findById(req.user._id);
-
-    user.projectHistory.push({
-      project,
-      role,
-      date,
-      team,
-      skills: skills || [],
-      score,
-      description: description || "",
-    });
-
-    await user.save();
-
-    return res.status(201).json({
-      success: true,
-      message: "Project added successfully",
-      project: user.projectHistory[user.projectHistory.length - 1],
-    });
-  } catch (error) {
-    console.error("Error adding project:", error);
-    return res.status(500).json({ message: "Server error" });
-  }
-});
-
-router.patch("/projects/:projectId", protect, async (req, res) => {
-  try {
-    const { projectId } = req.params;
-    const { project, role, date, team, skills, score, description } = req.body;
-
-    if (score && (score < 0 || score > 100)) {
-      return res.status(400).json({ message: "Score must be between 0 and 100" });
-    }
-
-    const user = await User.findById(req.user._id);
-    const projectItem = user.projectHistory.id(projectId);
-
-    if (!projectItem) {
-      return res.status(404).json({ message: "Project not found" });
-    }
-
-    if (project !== undefined) projectItem.project = project;
-    if (role !== undefined) projectItem.role = role;
-    if (date !== undefined) projectItem.date = date;
-    if (team !== undefined) projectItem.team = team;
-    if (skills !== undefined) projectItem.skills = skills;
-    if (score !== undefined) projectItem.score = score;
-    if (description !== undefined) projectItem.description = description;
-
-    await user.save();
-
-    return res.status(200).json({
-      success: true,
-      message: "Project updated successfully",
-      project: projectItem,
-    });
-  } catch (error) {
-    console.error("Error updating project:", error);
-    return res.status(500).json({ message: "Server error" });
-  }
-});
-
-
-router.delete("/projects/:projectId", protect, async (req, res) => {
-  try {
-    const { projectId } = req.params;
-
-    const user = await User.findById(req.user._id);
-    const project = user.projectHistory.id(projectId);
-
-    if (!project) {
-      return res.status(404).json({ message: "Project not found" });
-    }
-
-    user.projectHistory.pull(projectId);
-    await user.save();
-
-    return res.status(200).json({
-      success: true,
-      message: "Project deleted successfully",
-    });
-  } catch (error) {
-    console.error("Error deleting project:", error);
-    return res.status(500).json({ message: "Server error" });
-  }
-});
-
-
-router.post("/recommendations", protect, async (req, res) => {
-  try {
-    const { skillName, reason, suggestedAction, resourceLinks, priority } = req.body;
-
-    if (!skillName || !reason || !suggestedAction) {
-      return res.status(400).json({ message: "Please provide all required fields" });
-    }
-
-    const user = await User.findById(req.user._id);
-
-    user.recommendations.push({
-      skillName,
-      reason,
-      suggestedAction,
-      resourceLinks: resourceLinks || [],
-      priority: priority || "MEDIUM",
-    });
-
-    await user.save();
-
-    return res.status(201).json({
-      success: true,
-      message: "Recommendation added successfully",
-      recommendation: user.recommendations[user.recommendations.length - 1],
-    });
-  } catch (error) {
-    console.error("Error adding recommendation:", error);
-    return res.status(500).json({ message: "Server error" });
-  }
-});
-
-
-router.delete("/recommendations/:recommendationId", protect, async (req, res) => {
-  try {
-    const { recommendationId } = req.params;
-
-    const user = await User.findById(req.user._id);
-    const recommendation = user.recommendations.id(recommendationId);
-
-    if (!recommendation) {
-      return res.status(404).json({ message: "Recommendation not found" });
-    }
-
-    user.recommendations.pull(recommendationId);
-    await user.save();
-
-    return res.status(200).json({
-      success: true,
-      message: "Recommendation deleted successfully",
-    });
-  } catch (error) {
-    console.error("Error deleting recommendation:", error);
-    return res.status(500).json({ message: "Server error" });
-  }
-});
 
 export default router;
