@@ -81,6 +81,24 @@ export default function CareerPath() {
   const [userSkills, setUserSkills] = useState([]);
   const [apiError, setApiError] = useState(null);
 
+  // Fetch user profile data for navbar
+  const fetchUserProfile = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/');
+        return;
+      }
+
+      const response = await axios.get(`${API_BASE_URL}/settings/user`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUserData(response.data);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
+
   // Fetch user data and career recommendations
   useEffect(() => {
     const fetchUserDataAndRecommendations = async () => {
@@ -93,6 +111,9 @@ export default function CareerPath() {
           navigate('/');
           return;
         }
+
+        // Fetch user profile first for navbar
+        await fetchUserProfile();
 
         // Fetch career recommendations from API
         try {
