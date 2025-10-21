@@ -13,23 +13,19 @@ export const protect = async (req, res, next) => {
       // Verify token and decode
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // Find user by ID from decoded token, excluding password
-      req.user = await User.findById(decoded.id).select('-password');
-
-      // Check if user exists
-      if (!req.user) {
+      // Find user by ID from decoded token
+      const user = await User.findById(decoded.id).select('-password');
+      
+      if (!user) {
         return res.status(401).json({ message: 'User not found' });
       }
 
+      req.user = user;
       return next();
     } catch (err) {
-      console.error('Token verification failed:', err.message);
       return res.status(401).json({ message: 'Not authorized, token failed' });
     }
   }
 
-  // If no token or invalid header format
   return res.status(401).json({ message: 'Not authorized, no token provided' });
 };
-
-// Usage: Authorization: Bearer <token>

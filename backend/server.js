@@ -7,6 +7,7 @@ import profileRoutes from './routes/profile.js';
 import roleHistoryRoutes from './routes/roleHistory.js';
 import settingsRoutes from './routes/settings.js';
 import suggestionsRoutes from './routes/suggestions.js';
+import careerPathRoutes from './routes/careerPathRoutes.js'
 
 import { connectDB } from './config/db.js';
 
@@ -32,6 +33,8 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/role-history', roleHistoryRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/suggestions', suggestionsRoutes);
+app.use('/api/career-path', careerPathRoutes);
+
 
 // Health check endpoint
 app.get('/health', (req, res) => {
