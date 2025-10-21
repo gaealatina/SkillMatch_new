@@ -6,7 +6,7 @@ import logo from '../assets/logo.png';
 
 const Login = () => {
   const navigate = useNavigate();
-  const [loginInput, setLoginInput] = useState(''); // can be email or student ID
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -67,12 +67,12 @@ const Login = () => {
     }
   };
 
-  // Handle Manual Login (email or student ID)
+  // Handle Manual Login (email only)
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
 
-    if (!loginInput) newErrors.loginInput = 'Email or Student ID is required';
+    if (!email) newErrors.email = 'Email is required';
     if (!password) newErrors.password = 'Password is required';
 
     setErrors(newErrors);
@@ -85,7 +85,7 @@ const Login = () => {
       const response = await fetch('/api/users/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: loginInput, password }), // backend accepts both
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
@@ -149,21 +149,21 @@ const Login = () => {
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email / Student ID */}
+            {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Email or Student ID
+                Email address
               </label>
               <input
-                type="text"
-                value={loginInput}
-                onChange={(e) => setLoginInput(e.target.value)}
-                placeholder="Enter email or student ID"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
                 className={`w-full px-4 py-2.5 text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-800 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition ${
-                  errors.loginInput ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                 }`}
               />
-              {errors.loginInput && <p className="text-red-500 text-xs mt-1">{errors.loginInput}</p>}
+              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
             </div>
 
             {/* Password */}
