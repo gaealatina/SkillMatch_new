@@ -225,10 +225,32 @@ export default function CareerPath() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [rankedPaths, setRankedPaths] = useState([]);
+  const [topMatch, setTopMatch] = useState(null);
+  const [userSkills, setUserSkills] = useState([]);
+  const [apiError, setApiError] = useState(null);
 
-  // Fetch user data
+  // Fetch user profile data for navbar
+  const fetchUserProfile = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/');
+        return;
+      }
+
+      const response = await axios.get(`${API_BASE_URL}/settings/user`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUserData(response.data);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
+
+  // Fetch user data and career recommendations
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchUserDataAndRecommendations = async () => {
       try {
         setLoading(true);
         const token = localStorage.getItem('token');
@@ -238,13 +260,40 @@ export default function CareerPath() {
           return;
         }
 
-        const response = await axios.get(`${API_BASE_URL}/settings/user`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        
-        setUserData(response.data);
+        // Fetch user profile first for navbar
+        await fetchUserProfile();
+
+        // Fetch career recommendations from API
+        try {
+          const careerResponse = await axios.get(`${API_BASE_URL}/career-path/recommendations`, {
+            headers: { Authorization: `Bearer ${token}` },
+            timeout: 15000,
+          });
+          
+          if (careerResponse.data.careerPaths && careerResponse.data.careerPaths.length > 0) {
+            setRankedPaths(careerResponse.data.careerPaths);
+            setTopMatch(careerResponse.data.topMatch);
+            setUserSkills(careerResponse.data.userSkillsCount > 0 ? careerResponse.data.userSkillsCount : userSkills);
+          } else {
+            setApiError('No career recommendations available');
+            toast.info('Add more skills to get better career recommendations');
+          }
+
+        } catch (careerError) {
+          setApiError(careerError.response?.data?.error || careerError.message);
+          
+          if (careerError.response?.status === 401) {
+            toast.error('Authentication failed. Please login again.');
+            navigate('/');
+            return;
+          }
+          
+          if (careerError.response?.status === 404) {
+            toast.info('No skills found. Please add your skills first.');
+          } else {
+            toast.error('Failed to load career recommendations');
+          }
+        }
       } catch (err) {
         console.error('Error fetching user:', err);
         toast.error('Failed to load user data');
@@ -254,7 +303,7 @@ export default function CareerPath() {
       }
     };
 
-    fetchUserData();
+    fetchUserDataAndRecommendations();
   }, [navigate]);
 
   // Calculate career matches and rank them
