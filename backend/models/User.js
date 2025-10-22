@@ -169,12 +169,29 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
-      select: false, // Password won't be returned by default in queries
+      select: false,
     },
-    profilePicture: {
+    id: {
+      type: String,
+      unique: true,
+      sparse: true
+    },
+    userType: {
       type: String,
       enum: ["student", "educator"],
       default: "student",
+    },
+    profilePicture: {
+      type: String,
+      default: null,
+    },
+    course: {
+      type: String,
+      default: null,
+    },
+    yearLevel: {
+      type: String,
+      default: null,
     },
     skills: [skillSchema],
     projectHistory: [projectSchema],
@@ -270,7 +287,10 @@ userSchema.methods.generateRecommendations = function() {
   });
 
   // Sort by priority (skills needing most improvement first)
-  return recommendations.sort((a, b) => b.priority - a.priority);
+  return recommendations.sort((a, b) => {
+    const priorityOrder = { HIGH: 3, MEDIUM: 2, LOW: 1 };
+    return priorityOrder[b.priority] - priorityOrder[a.priority];
+  });
 };
 
 // Improved password hashing middleware

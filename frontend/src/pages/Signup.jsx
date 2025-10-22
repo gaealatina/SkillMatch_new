@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, Users, Zap, X, CheckCircle, Shield, Eye, EyeOff, Database, Mail, Menu } from 'lucide-react';
+import { X, CheckCircle, Eye, EyeOff, Menu } from 'lucide-react';
 import logo from '../assets/logo.png';
 
 const Signup = () => {
@@ -11,7 +11,6 @@ const Signup = () => {
     email: '',
     password: '',
     confirmPassword: '',
-
   });
   const [errors, setErrors] = useState({});
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -89,7 +88,7 @@ const Signup = () => {
         confirmPassword: formData.confirmPassword,
       };
 
-      const response = await fetch('/api/users/signup', {
+      const response = await fetch('http://localhost:5000/api/users/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -104,12 +103,12 @@ const Signup = () => {
         return;
       }
 
-      // Store token
+      // Store token and user data
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      // Redirect to login page
-      navigate('/login', { state: { from: 'signup' } });
+      // Redirect to dashboard
+      navigate('/login');
     } catch (error) {
       console.error('Signup error:', error);
       setServerError('An error occurred during signup. Please try again.');
@@ -215,7 +214,7 @@ const Signup = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
-      {/* Navigation Bar - FIXED Z-INDEX */}
+      {/* Navigation Bar */}
       <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4 sticky top-0 z-40 transition-colors duration-300">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className='flex items-center gap-2'>
@@ -223,7 +222,7 @@ const Signup = () => {
             <span className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">SkillMatch</span>
           </div>
           
-          {/* Desktop Navigation - FIXED LINKS */}
+          {/* Desktop Navigation */}
           <div className='hidden md:flex items-center gap-6'>
             <Link 
               to="/" 
@@ -248,7 +247,7 @@ const Signup = () => {
           </button>
         </div>
 
-        {/* Mobile Menu - FIXED Z-INDEX AND CLOSING */}
+        {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden mt-4 pb-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 z-40 relative">
             <div className="flex flex-col space-y-3 pt-4">

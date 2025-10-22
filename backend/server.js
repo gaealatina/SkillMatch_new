@@ -34,7 +34,7 @@ app.use('/api/role-history', roleHistoryRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/suggestions', suggestionsRoutes);
 app.use('/api/career-path', careerPathRoutes);
-app.use('/api/dashboard', dashboardRoutes); 
+app.use('/api/dashboard', dashboardRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

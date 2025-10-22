@@ -11,7 +11,7 @@ router.use(protect);
 // GET /api/settings/user - Fetch user data including settings
 router.get('/user', async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('firstName lastName email settings profilePicture');
+    const user = await User.findById(req.user._id).select('firstName lastName email settings profilePicture course yearLevel');
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -23,6 +23,8 @@ router.get('/user', async (req, res) => {
       lastName: user.lastName,
       email: user.email,
       profilePicture: user.profilePicture,
+      course: user.course || '',
+      yearLevel: user.yearLevel || '',
       settings: {
         appearance: user.settings?.appearance || { theme: 'system', darkMode: false },
         notifications: user.settings?.notifications || {
@@ -44,14 +46,14 @@ router.get('/user', async (req, res) => {
   }
 });
 
-// PUT /api/settings/user - Update email, password, and/or settings
+// PUT /api/settings/user - Update email, password, profile info, and/or settings
 router.put('/user', async (req, res) => {
   try {
     if (!req.user) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
-    const { email, currentPassword, newPassword, settings } = req.body;
+    const { email, currentPassword, newPassword } = req.body;
     const user = await User.findById(req.user._id);
 
     if (!user) {
@@ -66,11 +68,6 @@ router.put('/user', async (req, res) => {
     if ((email || newPassword) && currentPassword) {
       const isPasswordValid = await user.matchPassword(currentPassword);
       
-      // Debug logging
-      console.log('Current password input:', currentPassword);
-      console.log('Stored password hash:', user.password);
-      console.log('Password match result:', isPasswordValid);
-      
       if (!isPasswordValid) {
         return res.status(401).json({ error: 'Incorrect current password' });
       }
@@ -78,10 +75,10 @@ router.put('/user', async (req, res) => {
 
     // Update email
     if (email && email !== user.email) {
-      // Validate university email format - must contain @ and a domain
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        return res.status(400).json({ error: 'Please use a valid email address (e.g., alex.rivera@university.edu)' });
+        return res.status(400).json({ error: 'Please use a valid email address' });
       }
       
       const existingUser = await User.findOne({ email: email.toLowerCase() });
@@ -100,37 +97,17 @@ router.put('/user', async (req, res) => {
       user.password = await bcrypt.hash(newPassword, salt);
     }
 
-    // Update settings
-    if (settings) {
-      if (settings.appearance) {
-        user.settings.appearance = {
-          ...user.settings.appearance,
-          ...settings.appearance,
-        };
-      }
-      if (settings.notifications) {
-        user.settings.notifications = {
-          ...user.settings.notifications,
-          ...settings.notifications,
-        };
-      }
-      if (settings.privacy) {
-        user.settings.privacy = {
-          ...user.settings.privacy,
-          ...settings.privacy,
-        };
-      }
-    }
-
     await user.save();
 
     res.json({
-      message: 'Settings updated successfully',
+      message: 'Security settings updated successfully',
       name: `${user.firstName} ${user.lastName}`,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
       profilePicture: user.profilePicture,
+      course: user.course,
+      yearLevel: user.yearLevel,
       settings: user.settings,
     });
   } catch (error) {
@@ -138,6 +115,8 @@ router.put('/user', async (req, res) => {
     res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
+
+
 
 // GET /api/settings/appearance - Get appearance settings only
 router.get('/appearance', async (req, res) => {

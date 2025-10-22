@@ -43,7 +43,7 @@ const Login = () => {
       setIsLoading(true);
       setServerError('');
 
-      const res = await fetch('/api/users/google', {
+      const res = await fetch('http://localhost:5000/api/users/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ credential: response.credential }),
@@ -67,7 +67,7 @@ const Login = () => {
     }
   };
 
-  // Handle Manual Login (email only)
+  // Handle Manual Login
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
@@ -82,7 +82,7 @@ const Login = () => {
       setIsLoading(true);
       setServerError('');
 
-      const response = await fetch('/api/users/login', {
+      const response = await fetch('http://localhost:5000/api/users/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

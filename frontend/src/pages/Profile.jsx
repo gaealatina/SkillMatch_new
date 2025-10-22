@@ -97,50 +97,56 @@ export default function Profile() {
   }, [navigate]);
 
   const handleEditProfile = async (editedData) => {
-    try {
-      const token = localStorage.getItem('token');
+  try {
+    const token = localStorage.getItem('token');
 
-      if (editedData.profilePicture && editedData.profilePicture.startsWith('data:image')) {
-        await axios.patch(
-          `${API_BASE_URL}/profile/avatar`,
-          { profilePicture: editedData.profilePicture },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-      }
+    // Create a single object with all the data
+    const updateData = {
+      firstName: editedData.firstName,
+      lastName: editedData.lastName,
+      email: editedData.email,
+      course: editedData.course,
+      yearLevel: editedData.yearLevel,
+    };
 
-      await axios.patch(
-        `${API_BASE_URL}/profile/user`,
-        {
-          firstName: editedData.firstName,
-          lastName: editedData.lastName,
-          email: editedData.email,
-          course: editedData.course,
-          yearLevel: editedData.yearLevel,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+    // If there's a new profile picture, include it in the same request
+    if (editedData.profilePicture && editedData.profilePicture !== userData?.profilePicture) {
+      updateData.profilePicture = editedData.profilePicture;
+    }
 
-      const latestResponse = await axios.get(`${API_BASE_URL}/profile`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    // Make a single API call to update everything
+    const response = await axios.patch(
+      `${API_BASE_URL}/profile/user`,
+      updateData,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
-      setUserData(latestResponse.data.user || {});
-      setSkills(latestResponse.data.skills || []);
-      setProjectHistory(latestResponse.data.projectHistory || []);
+    // Update local state with the response
+    setUserData(response.data.user || {});
 
-      // Refresh suggestions after profile update if needed
-      const suggestionsResponse = await axios.get(SUGGESTIONS_URL, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setRecommendations(suggestionsResponse.data.recommendations || []);
+    // Refresh the entire profile data
+    const profileResponse = await axios.get(`${API_BASE_URL}/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    
+    setUserData(profileResponse.data.user || {});
+    setSkills(profileResponse.data.skills || []);
+    setProjectHistory(profileResponse.data.projectHistory || []);
 
-      toast.success('Profile updated successfully');
-      setShowEditProfile(false);
-    } catch (err) {
-      console.error('Error updating profile:', err);
+    toast.success('Profile updated successfully');
+    setShowEditProfile(false);
+  } catch (err) {
+    console.error('Error updating profile:', err);
+    
+    // More specific error messages
+    if (err.response?.data?.details) {
+      // Validation errors from backend
+      toast.error(`Validation error: ${err.response.data.details.join(', ')}`);
+    } else {
       toast.error(err.response?.data?.message || 'Failed to update profile');
     }
-  };
+  }
+};
 
   const handleInitiateSkillAssessment = () => {
     if (!selectedSkill) {
@@ -719,8 +725,9 @@ function EditProfileModal({ userData, onClose, onSave }) {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 1024 * 1024 * 1024) {
-        toast.error('Image size must be less than 1GB');
+      // Fixed: Changed from 1GB to 10MB to match backend validation
+      if (file.size > 1024 * 1024 * 10) {
+        toast.error('Image size must be less than 10MB');
         return;
       }
 
@@ -740,21 +747,41 @@ function EditProfileModal({ userData, onClose, onSave }) {
   };
 
   const handleSaveChanges = async () => {
-    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
-      toast.error('Please fill all required fields');
+    // Enhanced validation
+    if (!firstName.trim()) {
+      toast.error('First name is required');
+      return;
+    }
+    if (!lastName.trim()) {
+      toast.error('Last name is required');
+      return;
+    }
+    if (!email.trim()) {
+      toast.error('Email is required');
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error('Please enter a valid email address');
       return;
     }
 
     setSaving(true);
     try {
+      // Send all data in one call to onSave
       await onSave({
-        firstName,
-        lastName,
-        email,
-        course,
-        yearLevel,
-        profilePicture,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim(),
+        course: course?.trim() || '',
+        yearLevel: yearLevel || '',
+        profilePicture: profilePicture,
       });
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      // Error is already handled in the parent component
     } finally {
       setSaving(false);
     }
@@ -813,14 +840,16 @@ function EditProfileModal({ userData, onClose, onSave }) {
               </label>
 
               <p className="text-xs text-gray-500 mt-3 text-center">
-                Tap the image to change. Max size: 1GB. JPG, PNG, GIF, WEBP, SVG supported.
+                Tap the image to change. Max size: 10MB. JPG, PNG, GIF, WEBP, SVG supported.
               </p>
             </div>
 
             <hr className="my-4" />
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Full Name <span className="text-red-500">*</span>
+              </label>
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -828,6 +857,7 @@ function EditProfileModal({ userData, onClose, onSave }) {
                   onChange={(e) => setFirstName(e.target.value)}
                   placeholder="First Name"
                   className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
                 />
                 <input
                   type="text"
@@ -835,17 +865,21 @@ function EditProfileModal({ userData, onClose, onSave }) {
                   onChange={(e) => setLastName(e.target.value)}
                   placeholder="Last Name"
                   className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email <span className="text-red-500">*</span>
+              </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
               />
             </div>
 
@@ -872,6 +906,7 @@ function EditProfileModal({ userData, onClose, onSave }) {
                 <option value="2nd Year">2nd Year</option>
                 <option value="3rd Year">3rd Year</option>
                 <option value="4th Year">4th Year</option>
+                <option value="5th Year">5th Year</option>
               </select>
             </div>
           </div>
@@ -879,14 +914,15 @@ function EditProfileModal({ userData, onClose, onSave }) {
           <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-100">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-lg text-sm text-gray-700 border border-gray-300 hover:bg-gray-50"
+              disabled={saving}
+              className="px-4 py-2 rounded-lg text-sm text-gray-700 border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               onClick={handleSaveChanges}
               disabled={saving}
-              className="px-6 py-2 rounded-lg text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400"
+              className="px-6 py-2 rounded-lg text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
             >
               {saving ? 'Saving...' : 'Save Changes'}
             </button>

@@ -192,18 +192,21 @@ function AccountSettings({ user, setUser, showPasswords, togglePasswordVisibilit
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSaveChanges = async () => {
+    // Validate password changes
     if (newPassword && newPassword !== confirmPassword) {
       toast.error('New passwords do not match!');
       return;
     }
     if ((newEmail || newPassword) && !currentPassword) {
-      toast.error('Current password is required to make changes!');
+      toast.error('Current password is required to make email or password changes!');
       return;
     }
 
     try {
       setIsLoading(true);
       const body = {};
+
+      // Add email/password changes if provided
       if (newEmail) body.email = newEmail;
       if (newPassword) body.newPassword = newPassword;
       if (currentPassword) body.currentPassword = currentPassword;
@@ -221,7 +224,9 @@ function AccountSettings({ user, setUser, showPasswords, togglePasswordVisibilit
 
       const updatedUser = await res.json();
       setUser(updatedUser);
-      toast.success('Account settings saved successfully!');
+      toast.success('Security settings saved successfully!');
+      
+      // Reset form fields
       setNewEmail('');
       setCurrentPassword('');
       setNewPassword('');
@@ -248,12 +253,13 @@ function AccountSettings({ user, setUser, showPasswords, togglePasswordVisibilit
             <Palette size={16} className="text-primary" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-card-foreground">Account Information</h3>
+            <h3 className="text-lg font-semibold text-card-foreground">Security Settings</h3>
             <p className="text-sm text-muted-foreground">Update your email address and password</p>
           </div>
         </div>
         
         <div className="bg-muted/30 rounded-xl border border-border p-6 space-y-5">
+          {/* Current Email */}
           <div>
             <label className="block text-sm font-medium text-card-foreground mb-2">Current Email</label>
             <input
@@ -264,6 +270,7 @@ function AccountSettings({ user, setUser, showPasswords, togglePasswordVisibilit
             />
           </div>
           
+          {/* New Email */}
           <div>
             <label className="block text-sm font-medium text-card-foreground mb-2">New Email</label>
             <input
@@ -271,12 +278,12 @@ function AccountSettings({ user, setUser, showPasswords, togglePasswordVisibilit
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
               placeholder="example@university.edu"
-              pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
               className="w-full px-3 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm bg-card text-card-foreground"
             />
-            <p className="text-xs text-muted-foreground mt-1">Must be a university email address (e.g., alex.rivera@university.edu)</p>
+            <p className="text-xs text-muted-foreground mt-1">Must be a valid email address</p>
           </div>
           
+          {/* Current Password */}
           <div>
             <label className="block text-sm font-medium text-card-foreground mb-2">Current Password</label>
             <div className="relative">
@@ -295,8 +302,10 @@ function AccountSettings({ user, setUser, showPasswords, togglePasswordVisibilit
                 {showPasswords.current ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
+            <p className="text-xs text-muted-foreground mt-1">Required for email or password changes</p>
           </div>
           
+          {/* New Password */}
           <div>
             <label className="block text-sm font-medium text-card-foreground mb-2">New Password</label>
             <div className="relative">
@@ -317,6 +326,7 @@ function AccountSettings({ user, setUser, showPasswords, togglePasswordVisibilit
             </div>
           </div>
           
+          {/* Confirm Password */}
           <div>
             <label className="block text-sm font-medium text-card-foreground mb-2">Confirm Password</label>
             <div className="relative">
