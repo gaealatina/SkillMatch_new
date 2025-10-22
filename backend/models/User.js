@@ -15,7 +15,7 @@ const skillSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ["PROGRAMMING", "WEB DEVELOPMENT", "BACKEND", "TOOLS", "OTHER"],
+    enum: ["PROGRAMMING", "WEB DEVELOPMENT", "UI/UX DESIGN", "FRONTEND", "BACKEND", "TOOLS", "OTHER"],
     required: true,
   },
   createdAt: {
@@ -88,13 +88,16 @@ const recommendationSchema = new mongoose.Schema({
     enum: ["HIGH", "MEDIUM", "LOW"],
     default: "MEDIUM",
   },
+  currentLevel: {
+    type: Number,
+    default: 0,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
   },
 });
 
-// Settings schema
 const settingsSchema = new mongoose.Schema({
   appearance: {
     theme: {
@@ -200,14 +203,102 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Hash password ONLY if it's modified and not already hashed
+// Add generateRecommendations method AFTER userSchema is defined
+userSchema.methods.generateRecommendations = function() {
+  const recommendations = [];
+  const skillLevels = {};
+
+  // Analyze current skill levels
+  this.skills.forEach(skill => {
+    skillLevels[skill.name] = skill.level;
+  });
+
+  // Recommendation rules based on skill levels
+  const recommendationRules = [
+    {
+      skillName: "JavaScript",
+      minLevel: 0,
+      maxLevel: 70,
+      reason: "Essential for modern web development. Your current level indicates room for improvement.",
+      suggestedAction: "Build interactive projects and master ES6+ features.",
+      resourceLinks: [
+        { title: "JavaScript Modern Tutorial", url: "https://javascript.info" },
+        { title: "JavaScript Projects", url: "https://github.com/topics/javascript-projects" }
+      ]
+    },
+    {
+      skillName: "Git",
+      minLevel: 0,
+      maxLevel: 80,
+      reason: "Essential for collaboration and professional development workflows.",
+      suggestedAction: "Learn branching strategies and team collaboration.",
+      resourceLinks: [
+        { title: "Git Handbook", url: "https://guides.github.com/introduction/git-handbook/" },
+        { title: "Git Practice", url: "https://learngitbranching.js.org" }
+      ]
+    },
+    {
+      skillName: "React",
+      minLevel: 0,
+      maxLevel: 60,
+      reason: "Most popular frontend framework. High demand in job market.",
+      suggestedAction: "Build component-based applications and learn state management.",
+      resourceLinks: [
+        { title: "React Official Tutorial", url: "https://reactjs.org/tutorial" },
+        { title: "React Projects", url: "https://github.com/enaqx/awesome-react" }
+      ]
+    },
+    {
+      skillName: "Node.js",
+      minLevel: 0,
+      maxLevel: 65,
+      reason: "Essential for backend development and full-stack applications.",
+      suggestedAction: "Build REST APIs and learn about middleware and authentication.",
+      resourceLinks: [
+        { title: "Node.js Guide", url: "https://nodejs.org/en/docs/guides/" },
+        { title: "Express Tutorial", url: "https://expressjs.com/en/starter/installing.html" }
+      ]
+    },
+    {
+      skillName: "CSS",
+      minLevel: 0,
+      maxLevel: 75,
+      reason: "Fundamental for styling and creating responsive designs.",
+      suggestedAction: "Master Flexbox, Grid, and modern CSS frameworks.",
+      resourceLinks: [
+        { title: "CSS Tricks", url: "https://css-tricks.com" },
+        { title: "Flexbox Guide", url: "https://flexboxfroggy.com" }
+      ]
+    }
+  ];
+
+  // Generate recommendations based on current skills
+  recommendationRules.forEach(rule => {
+    const currentLevel = skillLevels[rule.skillName] || 0;
+    
+    if (currentLevel >= rule.minLevel && currentLevel <= rule.maxLevel) {
+      recommendations.push({
+        skillName: rule.skillName,
+        currentLevel,
+        reason: rule.reason,
+        suggestedAction: rule.suggestedAction,
+        resourceLinks: rule.resourceLinks,
+        priority: rule.maxLevel - currentLevel // Higher gap = higher priority
+      });
+    }
+  });
+
+  // Sort by priority (skills needing most improvement first)
+  return recommendations.sort((a, b) => b.priority - a.priority);
+};
+
 userSchema.pre("save", async function (next) {
-  // Skip if password wasn't modified
+  // Skip if password hasn't been modified
   if (!this.isModified("password")) {
     return next();
   }
 
-  // Skip if password is already hashed (starts with $2a$ or $2b$)
+  // Skip if password is already hashed
   if (this.password.startsWith("$2a$") || this.password.startsWith("$2b$")) {
     return next();
   }
@@ -222,7 +313,6 @@ userSchema.pre("save", async function (next) {
   }
 });
 
-// Method to compare passwords
 userSchema.methods.matchPassword = async function (enteredPassword) {
   try {
     const match = await bcrypt.compare(enteredPassword, this.password);
@@ -233,7 +323,6 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
   }
 };
 
-// Remove password from JSON
 userSchema.methods.toJSON = function () {
   const obj = this.toObject();
   delete obj.password;
