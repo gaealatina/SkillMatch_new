@@ -12,68 +12,97 @@ const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || "7d" });
 };
 
-//SIGNUP ROUTE 
+// SIGNUP ROUTE - FIXED
 router.post("/signup", async (req, res) => {
   try {
-    console.log("Signup request received:", req.body);
+    console.log("SIGNUP REQUEST:", req.body);
 
-    const { firstName, lastName, email, id, password, confirmPassword, userType, course, yearLevel } = req.body;
+    const { firstName, lastName, email, password, confirmPassword } = req.body;
 
     // Validation - Check required fields
-    if (!firstName || !lastName || !email || !id || !password || !confirmPassword || !userType) {
-      return res.status(400).json({ message: "Please fill all required fields" });
+    if (!firstName || !lastName || !email || !password || !confirmPassword) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Please fill all required fields" 
+      });
     }
 
     // Check if passwords match
     if (password !== confirmPassword) {
-      return res.status(400).json({ message: "Passwords do not match" });
+      return res.status(400).json({ 
+        success: false,
+        message: "Passwords do not match" 
+      });
     }
 
     // Check password length
     if (password.length < 8) {
-      return res.status(400).json({ message: "Password must be at least 8 characters" });
+      return res.status(400).json({ 
+        success: false,
+        message: "Password must be at least 8 characters" 
+      });
+    }
+
+    // Enhanced password validation
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+    if (!hasNumber || !hasSpecialChar) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Password must contain at least 1 number and 1 special character" 
+      });
+    }
+
+    // Validate email format (Gmail only)
+    const gmailRegex = /^[^\s@]+@gmail\.com$/i;
+    if (!gmailRegex.test(email)) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Please use a valid Gmail address" 
+      });
     }
 
     // Check if email already exists
     const existingEmail = await User.findOne({ email: email.toLowerCase() });
     if (existingEmail) {
-      return res.status(400).json({ message: "Email already registered" });
+      return res.status(400).json({ 
+        success: false,
+        message: "Email already registered" 
+      });
     }
 
-    // Check if ID already exists
-    const existingID = await User.findOne({ id });
-    if (existingID) {
-      return res.status(400).json({ message: "ID already registered" });
-    }
-
-    // Validate user type
-    if (!["student", "educator"].includes(userType)) {
-      return res.status(400).json({ message: "Invalid user type" });
-    }
-
-    // If student, validate course and year level
-    if (userType === "student") {
-      if (!course || !yearLevel) {
-        return res.status(400).json({ message: "Course and year level are required for students" });
+    // Generate unique ID for user
+    const generateUniqueID = async () => {
+      let uniqueID;
+      let exists = true;
+      
+      while (exists) {
+        uniqueID = `SM-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+        const existingUser = await User.findOne({ id: uniqueID });
+        exists = !!existingUser;
       }
-    }
+      
+      return uniqueID;
+    };
+
+    const uniqueID = await generateUniqueID();
 
     // Create user
     const user = await User.create({
-      firstName,
-      lastName,
-      email: email.toLowerCase(),
-      id,
-      password,
-      userType,
-      course: userType === "student" ? course : null,
-      yearLevel: userType === "student" ? yearLevel : null,
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      email: email.toLowerCase().trim(),
+      id: uniqueID,
+      password: password, // This will be hashed by the pre-save middleware
+      userType: "student",
+      profilePicture: null
     });
 
     // Generate token
     const token = generateToken(user._id);
 
-    console.log("User created successfully:", user._id);
+    console.log("USER CREATED:", { id: user._id, email: user.email });
+    
     return res.status(201).json({
       success: true,
       message: "Account created successfully",
@@ -81,54 +110,105 @@ router.post("/signup", async (req, res) => {
       token,
     });
   } catch (error) {
-    console.error("Signup error:", error);
-    return res.status(500).json({ message: "Server error during signup", error: error.message });
+    console.error("SIGNUP ERROR:", error);
+    return res.status(500).json({ 
+      success: false,
+      message: "Server error during signup", 
+      error: error.message 
+    });
   }
 });
 
-//LOGIN ROUTE (Email or Student ID) 
+// LOGIN ROUTE - COMPLETELY FIXED
 router.post("/login", async (req, res) => {
   try {
-    console.log("Login request received:", { loginInput: req.body.email });
+    console.log("LOGIN ATTEMPT - Full request body:", req.body);
 
     const { email, password } = req.body;
 
+    // Debug what we're receiving
+    console.log("Email received:", email);
+    console.log("Password received:", password ? "***" : "MISSING");
+
     // Validation
     if (!email || !password) {
-      return res.status(400).json({ message: "Please provide your email or student ID and password" });
+      console.log("Missing email or password");
+      return res.status(400).json({ 
+        success: false,
+        message: "Please provide both email and password" 
+      });
     }
 
-    // Find user by email OR student ID
-    const user = await User.findOne({
-      $or: [
-        { email: email.toLowerCase() },
-        { id: email } // allows login using student ID
-      ]
+    // Clean the email
+    const cleanEmail = email.toLowerCase().trim();
+    console.log("Cleaned email:", cleanEmail);
+
+    // Find user by email - MAKE SURE TO INCLUDE PASSWORD
+    console.log("Searching for user in database...");
+    const user = await User.findOne({ email: cleanEmail }).select('+password');
+    
+    if (!user) {
+      console.log("User not found for email:", cleanEmail);
+      return res.status(401).json({ 
+        success: false,
+        message: "Invalid email or password" 
+      });
+    }
+
+    console.log("User found:", {
+      id: user._id,
+      email: user.email,
+      hasPassword: !!user.password,
+      passwordStartsWith: user.password ? user.password.substring(0, 10) + "..." : "NO PASSWORD"
     });
 
-    if (!user) {
-      return res.status(401).json({ message: "Invalid credentials" });
+    // Check if password is hashed (starts with $2)
+    const isPasswordHashed = user.password && user.password.startsWith('$2');
+    console.log("Password is hashed:", isPasswordHashed);
+
+    if (!isPasswordHashed) {
+      console.log("Password is not hashed properly");
+      return res.status(500).json({
+        success: false,
+        message: "Server configuration error. Please contact support."
+      });
     }
 
     // Check password
+    console.log("Starting password comparison...");
     const isPasswordValid = await user.matchPassword(password);
+    console.log("Password comparison result:", isPasswordValid);
+
     if (!isPasswordValid) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      console.log("Password incorrect");
+      return res.status(401).json({ 
+        success: false,
+        message: "Invalid email or password" 
+      });
     }
 
     // Generate token
     const token = generateToken(user._id);
+    console.log("Token generated");
 
-    console.log("User logged in successfully:", user._id);
+    // Get user without password for response
+    const userWithoutPassword = await User.findById(user._id);
+    
+    console.log("LOGIN SUCCESSFUL for user:", user._id);
+    
     return res.status(200).json({
       success: true,
       message: "Logged in successfully",
-      user: user.toJSON(),
+      user: userWithoutPassword.toJSON(),
       token,
     });
   } catch (error) {
-    console.error("Login error:", error);
-    return res.status(500).json({ message: "Server error during login" });
+    console.error("LOGIN ERROR:", error);
+    return res.status(500).json({ 
+      success: false,
+      message: "Server error during login",
+      error: error.message 
+    });
   }
 });
 
@@ -136,22 +216,38 @@ router.post("/login", async (req, res) => {
 router.get("/me", protect, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
+    
+    if (!user) {
+      return res.status(404).json({ 
+        success: false,
+        message: "User not found" 
+      });
+    }
+
     return res.status(200).json({
       success: true,
       user: user.toJSON(),
     });
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    console.error("Get me error:", error);
+    return res.status(500).json({ 
+      success: false,
+      message: "Server error",
+      error: error.message 
+    });
   }
 });
 
-//GOOGLE SIGN-IN 
+// GOOGLE SIGN-IN 
 router.post("/google", async (req, res) => {
   try {
     const { credential } = req.body;
 
     if (!credential) {
-      return res.status(400).json({ message: "Missing credential" });
+      return res.status(400).json({ 
+        success: false,
+        message: "Missing credential" 
+      });
     }
 
     // Verify Google token
@@ -162,25 +258,51 @@ router.post("/google", async (req, res) => {
 
     const payload = ticket.getPayload();
     if (!payload || !payload.email) {
-      return res.status(401).json({ message: "Invalid Google token" });
+      return res.status(401).json({ 
+        success: false,
+        message: "Invalid Google token" 
+      });
     }
 
     const email = payload.email.toLowerCase();
     const firstName = payload.given_name || payload.name?.split(" ")[0] || "User";
     const lastName = payload.family_name || payload.name?.split(" ")[1] || "";
 
+    // Check if email is Gmail
+    const gmailRegex = /^[^\s@]+@gmail\.com$/i;
+    if (!gmailRegex.test(email)) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Please use a Gmail account" 
+      });
+    }
+
     // Find or create user
     let user = await User.findOne({ email });
     if (!user) {
-      const randomID = `G-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const generateUniqueID = async () => {
+        let uniqueID;
+        let exists = true;
+        
+        while (exists) {
+          uniqueID = `G-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+          const existingUser = await User.findOne({ id: uniqueID });
+          exists = !!existingUser;
+        }
+        
+        return uniqueID;
+      };
+
+      const uniqueID = await generateUniqueID();
       
       user = await User.create({
-        firstName,
-        lastName,
-        email,
-        id: randomID,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim(),
+        id: uniqueID,
         password: Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2),
         userType: "student",
+        profilePicture: payload.picture || null
       });
     }
 
@@ -196,7 +318,40 @@ router.post("/google", async (req, res) => {
     });
   } catch (error) {
     console.error("Google auth error:", error);
-    return res.status(500).json({ message: "Server error during Google authentication" });
+    return res.status(500).json({ 
+      success: false,
+      message: "Server error during Google authentication",
+      error: error.message 
+    });
+  }
+});
+
+// DEBUG ROUTE - Check if users exist and their passwords
+router.get("/debug-users", async (req, res) => {
+  try {
+    const users = await User.find({}).select('+password');
+    const usersData = users.map(user => ({
+      _id: user._id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      hasPassword: !!user.password,
+      passwordLength: user.password ? user.password.length : 0,
+      passwordStartsWith: user.password ? user.password.substring(0, 10) + "..." : "NO PASSWORD",
+      isHashed: user.password ? user.password.startsWith('$2') : false
+    }));
+    
+    console.log("DEBUG - All users:", usersData);
+    res.json({
+      success: true,
+      users: usersData
+    });
+  } catch (error) {
+    console.error("Debug error:", error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
   }
 });
 

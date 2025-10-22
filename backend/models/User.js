@@ -172,21 +172,12 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
+      select: false, // Password won't be returned by default in queries
     },
     userType: {
       type: String,
       enum: ["student", "educator"],
-      required: true,
-    },
-    course: {
-      type: String,
-      default: null,
-      trim: true,
-    },
-    yearLevel: {
-      type: String,
-      default: null,
-      trim: true,
+      default: "student",
     },
     profilePicture: {
       type: String,
@@ -203,7 +194,7 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Add generateRecommendations method AFTER userSchema is defined
+// Add generateRecommendations method
 userSchema.methods.generateRecommendations = function() {
   const recommendations = [];
   const skillLevels = {};
@@ -292,14 +283,10 @@ userSchema.methods.generateRecommendations = function() {
   return recommendations.sort((a, b) => b.priority - a.priority);
 };
 
+// Improved password hashing middleware
 userSchema.pre("save", async function (next) {
-  // Skip if password hasn't been modified
+  // Only hash the password if it's modified (or new)
   if (!this.isModified("password")) {
-    return next();
-  }
-
-  // Skip if password is already hashed
-  if (this.password.startsWith("$2a$") || this.password.startsWith("$2b$")) {
     return next();
   }
 
@@ -315,6 +302,12 @@ userSchema.pre("save", async function (next) {
 
 userSchema.methods.matchPassword = async function (enteredPassword) {
   try {
+    // If password is not selected, we need to fetch it first
+    if (!this.password) {
+      const userWithPassword = await mongoose.model('User').findById(this._id).select('+password');
+      return await bcrypt.compare(enteredPassword, userWithPassword.password);
+    }
+    
     const match = await bcrypt.compare(enteredPassword, this.password);
     return match;
   } catch (error) {

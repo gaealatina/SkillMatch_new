@@ -12,16 +12,15 @@ import {
 
 const router = express.Router();
 
-// Validation rules
+// Validation rules - UPDATED FOR GMAIL
 const emailValidation = [
   body('email')
     .isEmail()
     .withMessage('Please provide a valid email address')
     .custom((value) => {
-      const validDomains = ['@phinmaed.com', '@phinma.edu.com'];
-      const hasValidDomain = validDomains.some(domain => value.endsWith(domain));
-      if (!hasValidDomain) {
-        throw new Error('Please use your PHINMA Education email address (@phinmaed.com for students or @phinma.edu.com for professors)');
+      const gmailRegex = /^[^\s@]+@gmail\.com$/i;
+      if (!gmailRegex.test(value)) {
+        throw new Error('Please use your Gmail address (@gmail.com)');
       }
       return true;
     })
@@ -47,8 +46,10 @@ const passwordValidation = [
   body('password')
     .isLength({ min: 8 })
     .withMessage('Password must be at least 8 characters long')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
+    .matches(/\d/)
+    .withMessage('Password must contain at least one number')
+    .matches(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/)
+    .withMessage('Password must contain at least one special character'),
   body('confirmPassword')
     .custom((value, { req }) => {
       if (value !== req.body.password) {
@@ -79,7 +80,7 @@ router.post('/forgot-password',
       const userAgent = req.get('User-Agent');
 
       // Check if user exists
-      const user = await User.findOne({ email });
+      const user = await User.findOne({ email: email.toLowerCase() });
       if (!user) {
         return res.status(404).json({
           success: false,
@@ -102,7 +103,7 @@ router.post('/forgot-password',
 
       // Save OTP to database
       const passwordReset = new PasswordReset({
-        email,
+        email: email.toLowerCase(),
         otpCode,
         otpExpiresAt,
         ipAddress,
@@ -158,7 +159,7 @@ router.post('/verify-otp',
 
       // Find the OTP record
       const passwordReset = await PasswordReset.findOne({
-        email,
+        email: email.toLowerCase(),
         otpCode: otp,
         isUsed: false,
         otpExpiresAt: { $gt: new Date() }
@@ -167,7 +168,7 @@ router.post('/verify-otp',
       if (!passwordReset) {
         // Increment attempts
         await PasswordReset.findOneAndUpdate(
-          { email, isUsed: false },
+          { email: email.toLowerCase(), isUsed: false },
           { $inc: { attempts: 1 } }
         );
 
@@ -220,7 +221,7 @@ router.post('/reset-password',
 
       // Find and verify OTP
       const passwordReset = await PasswordReset.findOne({
-        email,
+        email: email.toLowerCase(),
         otpCode: otp,
         isUsed: false,
         otpExpiresAt: { $gt: new Date() }
@@ -234,7 +235,7 @@ router.post('/reset-password',
       }
 
       // Find user
-      const user = await User.findOne({ email });
+      const user = await User.findOne({ email: email.toLowerCase() });
       if (!user) {
         return res.status(404).json({
           success: false,
@@ -261,7 +262,7 @@ router.post('/reset-password',
       await PasswordReset.cleanupExpired();
 
       // Send confirmation email
-      await emailService.sendPasswordResetConfirmation(email, user.name);
+      await emailService.sendPasswordResetConfirmation(email, `${user.firstName} ${user.lastName}`);
 
       res.status(200).json({
         success: true,
