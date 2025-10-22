@@ -148,40 +148,33 @@ const userSchema = new mongoose.Schema(
   {
     firstName: {
       type: String,
-      required: true,
+      required: [true, 'First name is required'],
       trim: true,
+      maxlength: [50, 'First name cannot exceed 50 characters']
     },
     lastName: {
       type: String,
-      required: true,
+      required: [true, 'Last name is required'],
       trim: true,
+      maxlength: [50, 'Last name cannot exceed 50 characters']
     },
     email: {
       type: String,
-      required: true,
+      required: [true, 'Email is required'],
       unique: true,
       lowercase: true,
       trim: true,
-    },
-    id: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
+      match: [/^[^\s@]+@gmail\.com$/i, 'Please enter a valid Gmail address']
     },
     password: {
       type: String,
       required: true,
       select: false, // Password won't be returned by default in queries
     },
-    userType: {
+    profilePicture: {
       type: String,
       enum: ["student", "educator"],
       default: "student",
-    },
-    profilePicture: {
-      type: String,
-      default: null,
     },
     skills: [skillSchema],
     projectHistory: [projectSchema],
@@ -199,12 +192,10 @@ userSchema.methods.generateRecommendations = function() {
   const recommendations = [];
   const skillLevels = {};
 
-  // Analyze current skill levels
   this.skills.forEach(skill => {
     skillLevels[skill.name] = skill.level;
   });
 
-  // Recommendation rules based on skill levels
   const recommendationRules = [
     {
       skillName: "JavaScript",
@@ -263,7 +254,6 @@ userSchema.methods.generateRecommendations = function() {
     }
   ];
 
-  // Generate recommendations based on current skills
   recommendationRules.forEach(rule => {
     const currentLevel = skillLevels[rule.skillName] || 0;
     
@@ -274,7 +264,7 @@ userSchema.methods.generateRecommendations = function() {
         reason: rule.reason,
         suggestedAction: rule.suggestedAction,
         resourceLinks: rule.resourceLinks,
-        priority: rule.maxLevel - currentLevel // Higher gap = higher priority
+        priority: currentLevel < 30 ? "HIGH" : currentLevel < 60 ? "MEDIUM" : "LOW"
       });
     }
   });

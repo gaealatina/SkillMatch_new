@@ -1,11 +1,10 @@
-import express from "express";
-import User from "../models/User.js";
-import { protect } from "../middleware/auth.js";
-import jwt from "jsonwebtoken";
-import { OAuth2Client } from "google-auth-library";
+import express from 'express';
+import User from '../models/User.js';
+import { generateToken } from '../middleware/auth.js';
+import { OAuth2Client } from 'google-auth-library';
 
 const router = express.Router();
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Generate JWT token
 const generateToken = (id) => {
@@ -35,7 +34,7 @@ router.post("/signup", async (req, res) => {
       });
     }
 
-    // Check password length
+    // Check password strength
     if (password.length < 8) {
       return res.status(400).json({ 
         success: false,
@@ -201,6 +200,18 @@ router.post("/login", async (req, res) => {
       message: "Logged in successfully",
       user: userWithoutPassword.toJSON(),
       token,
+      user: {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        profilePicture: user.profilePicture,
+        course: user.course,
+        yearLevel: user.yearLevel,
+        skills: user.skills,
+        projectHistory: user.projectHistory,
+        recommendations: user.recommendations
+      }
     });
   } catch (error) {
     console.error("LOGIN ERROR:", error);
@@ -251,12 +262,13 @@ router.post("/google", async (req, res) => {
     }
 
     // Verify Google token
-    const ticket = await googleClient.verifyIdToken({
+    const ticket = await client.verifyIdToken({
       idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: process.env.GOOGLE_CLIENT_ID
     });
 
     const payload = ticket.getPayload();
+    
     if (!payload || !payload.email) {
       return res.status(401).json({ 
         success: false,
@@ -305,16 +317,51 @@ router.post("/google", async (req, res) => {
         profilePicture: payload.picture || null
       });
     }
+  } catch (error) {
+    console.error('Google login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during Google login'
+    });
+  }
+});
 
-    // Generate token
-    const token = generateToken(user._id);
+// Get current user profile
+router.get('/me', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: 'No token provided'
+      });
+    }
 
-    console.log("Google login successful:", user._id);
-    return res.status(200).json({
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
+    const user = await User.findById(decoded.id).select('-password');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.json({
       success: true,
-      message: "Google login successful",
-      user: user.toJSON(),
-      token,
+      user: {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        profilePicture: user.profilePicture,
+        course: user.course,
+        yearLevel: user.yearLevel,
+        skills: user.skills,
+        projectHistory: user.projectHistory,
+        recommendations: user.recommendations
+      }
     });
   } catch (error) {
     console.error("Google auth error:", error);

@@ -9,144 +9,71 @@ const skillResources = {
   'JavaScript': [
     { title: 'JavaScript Modern Tutorial', url: 'https://javascript.info', type: 'document' },
     { title: 'MDN JavaScript Guide', url: 'https://developer.mozilla.org/javascript', type: 'document' },
-    { title: 'JavaScript Practice Projects', url: 'https://github.com/javascript-projects', type: 'course' }
+    { title: 'JavaScript Practice Projects', url: 'https://github.com/javascript-projects', type: 'course' },
+    { title: 'JavaScript 30 Challenge', url: 'https://javascript30.com', type: 'course' }
   ],
   'Git': [
     { title: 'Git Handbook', url: 'https://git-scm.com/book', type: 'document' },
     { title: 'Git Exercises', url: 'https://gitexercises.fracz.com', type: 'course' },
-    { title: 'Advanced Git', url: 'https://github.com/git-advanced', type: 'course' }
+    { title: 'Advanced Git', url: 'https://github.com/git-advanced', type: 'course' },
+    { title: 'Git Branching Tutorial', url: 'https://learngitbranching.js.org', type: 'course' }
   ],
   'React': [
     { title: 'React Official Tutorial', url: 'https://reactjs.org/tutorial', type: 'document' },
     { title: 'React Practice Projects', url: 'https://github.com/react-projects', type: 'course' },
-    { title: 'Advanced React Patterns', url: 'https://reactpatterns.com', type: 'document' }
+    { title: 'Advanced React Patterns', url: 'https://reactpatterns.com', type: 'document' },
+    { title: 'React Documentation', url: 'https://beta.reactjs.org', type: 'document' }
   ],
   'Node.js': [
     { title: 'Node.js Documentation', url: 'https://nodejs.org/docs', type: 'document' },
     { title: 'Express.js Guide', url: 'https://expressjs.com', type: 'document' },
-    { title: 'Node.js Best Practices', url: 'https://github.com/goldbergyoni/nodebestpractices', type: 'document' }
+    { title: 'Node.js Best Practices', url: 'https://github.com/goldbergyoni/nodebestpractices', type: 'document' },
+    { title: 'Node.js Design Patterns', url: 'https://nodejsdesignpatterns.com', type: 'document' }
   ],
   'CSS': [
     { title: 'CSS Tricks', url: 'https://css-tricks.com', type: 'document' },
     { title: 'Flexbox Guide', url: 'https://flexboxfroggy.com', type: 'course' },
-    { title: 'Grid Guide', url: 'https://cssgridgarden.com', type: 'course' }
+    { title: 'Grid Guide', url: 'https://cssgridgarden.com', type: 'course' },
+    { title: 'Modern CSS Solutions', url: 'https://moderncss.dev', type: 'document' }
   ],
   'HTML': [
     { title: 'HTML Reference', url: 'https://developer.mozilla.org/HTML', type: 'document' },
     { title: 'HTML Best Practices', url: 'https://htmlbestpractices.com', type: 'document' },
-    { title: 'Accessibility Guide', url: 'https://webaim.org', type: 'document' }
+    { title: 'Accessibility Guide', url: 'https://webaim.org', type: 'document' },
+    { title: 'Semantic HTML', url: 'https://web.dev/learn/html/semantic-html', type: 'document' }
   ],
   'Python': [
     { title: 'Python Official Tutorial', url: 'https://docs.python.org/3/tutorial/', type: 'document' },
     { title: 'Real Python Courses', url: 'https://realpython.com', type: 'course' },
-    { title: 'Python Exercises', url: 'https://exercism.org/tracks/python', type: 'course' }
+    { title: 'Python Exercises', url: 'https://exercism.org/tracks/python', type: 'course' },
+    { title: 'Python Projects', url: 'https://github.com/topics/python-projects', type: 'course' }
+  ],
+  'TypeScript': [
+    { title: 'TypeScript Handbook', url: 'https://www.typescriptlang.org/docs/', type: 'document' },
+    { title: 'TypeScript Exercises', url: 'https://typescript-exercises.github.io', type: 'course' },
+    { title: 'TypeScript with React', url: 'https://react-typescript-cheatsheet.netlify.app', type: 'document' }
+  ],
+  'SQL': [
+    { title: 'SQL Tutorial', url: 'https://www.w3schools.com/sql/', type: 'document' },
+    { title: 'SQL Practice', url: 'https://sqlbolt.com', type: 'course' },
+    { title: 'Advanced SQL', url: 'https://mode.com/sql-tutorial', type: 'document' }
+  ],
+  'Team Leadership': [
+    { title: 'Leadership Fundamentals', url: 'https://www.coursera.org/learn/leadership', type: 'course' },
+    { title: 'Effective Team Management', url: 'https://www.mindtools.com/pages/article/newLDR_86.htm', type: 'document' }
+  ],
+  'Agile/Scrum': [
+    { title: 'Agile Methodology Guide', url: 'https://www.agilealliance.org/agile101/', type: 'document' },
+    { title: 'Scrum Master Certification Prep', url: 'https://www.scrum.org/resources', type: 'course' }
+  ],
+  'Communication': [
+    { title: 'Effective Communication Skills', url: 'https://www.coursera.org/learn/communication-skills', type: 'course' },
+    { title: 'Professional Communication', url: 'https://www.mindtools.com/page8.html', type: 'document' }
+  ],
+  'Problem Solving': [
+    { title: 'Problem Solving Techniques', url: 'https://www.mindtools.com/pages/article/newTMC_00.htm', type: 'document' },
+    { title: 'Critical Thinking', url: 'https://www.coursera.org/learn/critical-thinking-skills', type: 'course' }
   ]
-};
-
-// Generate personalized recommendations
-const generatePersonalizedRecommendations = (user) => {
-  const recommendations = [];
-  const userSkills = user.skills || [];
-
-  // If user has no skills, suggest some popular ones
-  if (userSkills.length === 0) {
-    return [
-      {
-        skillName: "JavaScript",
-        reason: "Start with JavaScript - it's the foundation of modern web development.",
-        suggestedAction: "Begin with basic concepts and build simple interactive websites.",
-        resourceLinks: skillResources['JavaScript'] || [],
-        priority: "HIGH",
-        currentLevel: 0
-      },
-      {
-        skillName: "HTML & CSS",
-        reason: "Essential for building web pages and understanding web structure.",
-        suggestedAction: "Learn semantic HTML and modern CSS layout techniques.",
-        resourceLinks: [...(skillResources['HTML'] || []), ...(skillResources['CSS'] || [])],
-        priority: "HIGH",
-        currentLevel: 0
-      }
-    ];
-  }
-
-  // Analyze each skill for improvement
-  userSkills.forEach(skill => {
-    const currentLevel = skill.level;
-    let priority = 'LOW';
-    let reason = '';
-    let suggestedAction = '';
-
-    if (currentLevel < 40) {
-      priority = 'HIGH';
-      reason = `Your ${skill.name} skills are at beginner level (${currentLevel}%). Building strong fundamentals is crucial.`;
-      suggestedAction = `Focus on core concepts and build basic projects to establish foundation.`;
-    } else if (currentLevel < 70) {
-      priority = 'MEDIUM';
-      reason = `Your ${skill.name} skills are developing (${currentLevel}%). You're ready for intermediate concepts.`;
-      suggestedAction = `Practice advanced features and work on real-world projects to reach proficiency.`;
-    } else if (currentLevel < 90) {
-      priority = 'MEDIUM';
-      reason = `You have strong ${skill.name} skills (${currentLevel}%). Time to master advanced topics.`;
-      suggestedAction = `Learn advanced patterns, optimize performance, and mentor others.`;
-    } else {
-      return; // Skip skills at 90% or higher
-    }
-
-    // Get resources for this specific skill
-    const resources = skillResources[skill.name] || [
-      { title: `${skill.name} Documentation`, url: `https://google.com/search?q=${skill.name}+tutorial`, type: 'document' },
-      { title: `${skill.name} Practice`, url: `https://github.com/${skill.name}-practice`, type: 'course' },
-      { title: `${skill.name} Community`, url: `https://stackoverflow.com/questions/tagged/${skill.name}`, type: 'document' }
-    ];
-
-    recommendations.push({
-      skillName: skill.name,
-      reason,
-      suggestedAction,
-      resourceLinks: resources,
-      priority,
-      currentLevel
-    });
-  });
-
-  // Add recommendations for missing complementary skills
-  const userSkillNames = userSkills.map(skill => skill.name);
-  
-  // Suggest complementary skills based on existing skills
-  const complementarySkills = {
-    'JavaScript': ['React', 'Node.js'],
-    'React': ['Node.js', 'CSS'],
-    'Node.js': ['JavaScript', 'Git'],
-    'HTML': ['CSS', 'JavaScript'],
-    'CSS': ['JavaScript', 'React']
-  };
-
-  Object.keys(complementarySkills).forEach(skill => {
-    if (userSkillNames.includes(skill) && !recommendations.find(rec => complementarySkills[skill].includes(rec.skillName))) {
-      complementarySkills[skill].forEach(compSkill => {
-        if (!userSkillNames.includes(compSkill) && skillResources[compSkill]) {
-          recommendations.push({
-            skillName: compSkill,
-            reason: `Your ${skill} skills would be complemented by learning ${compSkill}.`,
-            suggestedAction: `Start with fundamentals and integrate with your ${skill} knowledge.`,
-            resourceLinks: skillResources[compSkill] || [],
-            priority: 'MEDIUM',
-            currentLevel: 0
-          });
-        }
-      });
-    }
-  });
-
-  // Sort by priority and current level (lower levels first)
-  return recommendations.sort((a, b) => {
-    const priorityOrder = { HIGH: 1, MEDIUM: 2, LOW: 3 };
-    if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
-      return priorityOrder[a.priority] - priorityOrder[b.priority];
-    }
-    return a.currentLevel - b.currentLevel;
-  });
 };
 
 // Get personalized suggestions for logged-in user
@@ -155,10 +82,46 @@ router.get("/", protect, async (req, res) => {
     const user = await User.findById(req.user._id);
     
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ 
+        success: false,
+        message: "User not found" 
+      });
     }
 
-    const recommendations = generatePersonalizedRecommendations(user);
+    // Use the same recommendation logic as the User model
+    let recommendations = [];
+    
+    if (user.recommendations && user.recommendations.length > 0) {
+      // Use existing recommendations from user model
+      recommendations = user.recommendations.map(rec => ({
+        skillName: rec.skillName,
+        reason: rec.reason,
+        suggestedAction: rec.suggestedAction,
+        resourceLinks: rec.resourceLinks || getDefaultResources(rec.skillName),
+        priority: rec.priority || 'MEDIUM',
+        currentLevel: rec.currentLevel || 0
+      }));
+    } else {
+      // Generate new recommendations using User model method
+      recommendations = user.generateRecommendations().map(rec => ({
+        skillName: rec.skillName,
+        reason: rec.reason,
+        suggestedAction: rec.suggestedAction,
+        resourceLinks: rec.resourceLinks || getDefaultResources(rec.skillName),
+        priority: rec.priority,
+        currentLevel: rec.currentLevel
+      }));
+
+      // Save recommendations to user for future use
+      user.recommendations = recommendations;
+      await user.save();
+    }
+
+    // Enhance recommendations with additional resources
+    recommendations = recommendations.map(rec => ({
+      ...rec,
+      resourceLinks: skillResources[rec.skillName] || rec.resourceLinks || getDefaultResources(rec.skillName)
+    }));
 
     return res.status(200).json({
       success: true,
@@ -166,13 +129,37 @@ router.get("/", protect, async (req, res) => {
       user: {
         firstName: user.firstName,
         lastName: user.lastName,
-        skills: user.skills
+        skills: user.skills || []
       }
     });
   } catch (error) {
     console.error("Error generating suggestions:", error);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ 
+      success: false,
+      message: "Server error generating suggestions" 
+    });
   }
 });
+
+// Helper function to get default resources for a skill
+function getDefaultResources(skillName) {
+  return [
+    { 
+      title: `${skillName} Documentation`, 
+      url: `https://google.com/search?q=${encodeURIComponent(skillName)}+tutorial`, 
+      type: 'document' 
+    },
+    { 
+      title: `${skillName} Practice Exercises`, 
+      url: `https://github.com/topics/${encodeURIComponent(skillName)}-practice`, 
+      type: 'course' 
+    },
+    { 
+      title: `${skillName} Community & Forums`, 
+      url: `https://stackoverflow.com/questions/tagged/${encodeURIComponent(skillName.toLowerCase())}`, 
+      type: 'document' 
+    }
+  ];
+}
 
 export default router;
