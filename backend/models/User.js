@@ -15,7 +15,12 @@ const skillSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ["PROGRAMMING", "WEB DEVELOPMENT", "UI/UX DESIGN", "FRONTEND", "BACKEND", "TOOLS", "OTHER"],
+    enum: [
+      "PROGRAMMING", "WEB DEVELOPMENT", "UI/UX DESIGN", "FRONTEND", "BACKEND", "TOOLS", 
+      "MOBILE DEVELOPMENT", "DATA SCIENCE", "DEVOPS & CLOUD", "PROJECT MANAGEMENT", 
+      "CYBERSECURITY", "SOFTWARE ARCHITECTURE", "QUALITY ASSURANCE", "BUSINESS & PRODUCT", 
+      "IT & INFRASTRUCTURE", "OTHER"
+    ],
     required: true,
   },
   createdAt: {
@@ -170,16 +175,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       select: false,
-    },
-    id: {
-      type: String,
-      unique: true,
-      sparse: true
-    },
-    userType: {
-      type: String,
-      enum: ["student", "educator"],
-      default: "student",
     },
     profilePicture: {
       type: String,

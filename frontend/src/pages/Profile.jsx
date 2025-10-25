@@ -975,7 +975,17 @@ function AddSkillModal({
                 <option value="UI/UX DESIGN">UI/UX Design</option>
                 <option value="FRONTEND">Frontend</option>
                 <option value="BACKEND">Backend</option>
-                <option value="TOOLS">Tools</option>
+                <option value="TOOLS">Programming Tools</option>
+                <option value="MOBILE DEVELOPMENT">Mobile Development</option>
+                <option value="DATA SCIENCE">Data Science</option>
+                <option value="DEVOPS & CLOUD">DevOps & Cloud</option>
+                <option value="PROJECT MANAGEMENT">Project Management</option>
+                <option value="CYBERSECURITY">Cyber Security</option>
+                <option value="SOFTWARE ARCHITECTURE">Software Architecture</option>
+                <option value="QUALITY ASSURANCE">Quality Assurance</option>
+                <option value="BUSINESS & PRODUCT">Business & Products</option>
+                <option value="IT & INFRASTRUCTURE">IT & Infrastructure</option>
+                
               </select>
             </div>
 
