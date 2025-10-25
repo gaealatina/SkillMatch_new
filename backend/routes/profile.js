@@ -4,7 +4,6 @@ import { protect } from "../middleware/auth.js";
 
 const router = express.Router();
 
-
 const handleError = (res, error, customMessage = "Server error") => {
   console.error(customMessage, error);
   
@@ -25,14 +24,13 @@ const handleError = (res, error, customMessage = "Server error") => {
 router.get("/", protect, async (req, res) => {
   try {
     const user = await User.findById(req.user._id)
-      .select('-password') // Exclude password
-      .lean(); // Return plain JavaScript object
+      .select('-password')
+      .lean();
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-   
     const responseData = {
       success: true,
       user: {
@@ -56,11 +54,15 @@ router.get("/", protect, async (req, res) => {
 
 router.patch("/user", protect, async (req, res) => {
   try {
-    const { firstName, lastName, email, course, yearLevel } = req.body;
+    const { firstName, lastName, email, course, yearLevel, profilePicture } = req.body;
 
-    // Validation
     if (!firstName?.trim() || !lastName?.trim() || !email?.trim()) {
       return res.status(400).json({ message: "First name, last name, and email are required" });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: "Please provide a valid email address" });
     }
 
     const user = await User.findById(req.user._id);
@@ -68,7 +70,6 @@ router.patch("/user", protect, async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-   
     if (email.toLowerCase() !== user.email) {
       const existingUser = await User.findOne({ 
         email: email.toLowerCase(),
@@ -79,16 +80,18 @@ router.patch("/user", protect, async (req, res) => {
       }
     }
 
- 
     user.firstName = firstName.trim();
     user.lastName = lastName.trim();
     user.email = email.toLowerCase().trim();
     user.course = course?.trim() || null;
     user.yearLevel = yearLevel || null;
 
+    if (profilePicture !== undefined) {
+      user.profilePicture = profilePicture;
+    }
+
     await user.save();
 
-   
     const updatedUser = await User.findById(req.user._id).select('-password');
 
     return res.status(200).json({
@@ -116,7 +119,6 @@ router.patch("/avatar", protect, async (req, res) => {
       return res.status(400).json({ message: "Profile picture data is required" });
     }
 
-   
     const allowedFormats = [
       "data:image/jpeg", 
       "data:image/jpg", 
@@ -133,7 +135,6 @@ router.patch("/avatar", protect, async (req, res) => {
       });
     }
 
-    
     const base64Data = profilePicture.split(',')[1];
     const sizeInMB = Buffer.from(base64Data, 'base64').length / (1024 * 1024);
     if (sizeInMB > 10) {
@@ -169,9 +170,8 @@ router.post("/skills", protect, async (req, res) => {
   try {
     const { name, level, category } = req.body;
 
-    console.log("🔍 Received skill data:", { name, level, category }); // Debug log
+    console.log("🔍 Received skill data:", { name, level, category });
 
-    
     if (!name?.trim() || level === undefined || level === null || !category?.trim()) {
       console.log("❌ Missing required fields");
       return res.status(400).json({ 
@@ -186,8 +186,13 @@ router.post("/skills", protect, async (req, res) => {
       });
     }
 
-   
-    const allowedCategories = ["PROGRAMMING", "WEB DEVELOPMENT", "UI/UX DESIGN", "FRONTEND", "BACKEND", "TOOLS", "OTHER"];
+    const allowedCategories = [
+      "PROGRAMMING", "WEB DEVELOPMENT", "UI/UX DESIGN", "FRONTEND", "BACKEND", "TOOLS", 
+      "MOBILE DEVELOPMENT", "DATA SCIENCE", "DEVOPS & CLOUD", "PROJECT MANAGEMENT", 
+      "CYBERSECURITY", "SOFTWARE ARCHITECTURE", "QUALITY ASSURANCE", "BUSINESS & PRODUCT", 
+      "IT & INFRASTRUCTURE", "OTHER"
+    ];
+    
     if (!allowedCategories.includes(category)) {
       console.log("❌ Invalid category:", category);
       return res.status(400).json({ 
@@ -201,7 +206,6 @@ router.post("/skills", protect, async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    
     const skillExists = user.skills.some(
       skill => skill.name.toLowerCase() === name.toLowerCase().trim()
     );
@@ -211,7 +215,6 @@ router.post("/skills", protect, async (req, res) => {
       return res.status(400).json({ message: "Skill already exists" });
     }
 
-   
     const newSkill = {
       name: name.trim(),
       level: Math.round(level),
@@ -222,7 +225,6 @@ router.post("/skills", protect, async (req, res) => {
     user.skills.push(newSkill);
     await user.save();
 
-    
     const addedSkill = user.skills[user.skills.length - 1];
     console.log("✅ Skill added successfully:", addedSkill);
 
@@ -236,8 +238,6 @@ router.post("/skills", protect, async (req, res) => {
     return handleError(res, error, "Error adding skill:");
   }
 });
-
-
 
 router.patch("/skills/:skillId", protect, async (req, res) => {
   try {
@@ -298,7 +298,5 @@ router.delete("/skills/:skillId", protect, async (req, res) => {
     return handleError(res, error, "Error deleting skill:");
   }
 });
-
-
 
 export default router;

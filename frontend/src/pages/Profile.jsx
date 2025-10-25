@@ -97,50 +97,56 @@ export default function Profile() {
   }, [navigate]);
 
   const handleEditProfile = async (editedData) => {
-    try {
-      const token = localStorage.getItem('token');
+  try {
+    const token = localStorage.getItem('token');
 
-      if (editedData.profilePicture && editedData.profilePicture.startsWith('data:image')) {
-        await axios.patch(
-          `${API_BASE_URL}/profile/avatar`,
-          { profilePicture: editedData.profilePicture },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-      }
+    // Create a single object with all the data
+    const updateData = {
+      firstName: editedData.firstName,
+      lastName: editedData.lastName,
+      email: editedData.email,
+      course: editedData.course,
+      yearLevel: editedData.yearLevel,
+    };
 
-      await axios.patch(
-        `${API_BASE_URL}/profile/user`,
-        {
-          firstName: editedData.firstName,
-          lastName: editedData.lastName,
-          email: editedData.email,
-          course: editedData.course,
-          yearLevel: editedData.yearLevel,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+    // If there's a new profile picture, include it in the same request
+    if (editedData.profilePicture && editedData.profilePicture !== userData?.profilePicture) {
+      updateData.profilePicture = editedData.profilePicture;
+    }
 
-      const latestResponse = await axios.get(`${API_BASE_URL}/profile`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    // Make a single API call to update everything
+    const response = await axios.patch(
+      `${API_BASE_URL}/profile/user`,
+      updateData,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
-      setUserData(latestResponse.data.user || {});
-      setSkills(latestResponse.data.skills || []);
-      setProjectHistory(latestResponse.data.projectHistory || []);
+    // Update local state with the response
+    setUserData(response.data.user || {});
 
-      // Refresh suggestions after profile update if needed
-      const suggestionsResponse = await axios.get(SUGGESTIONS_URL, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setRecommendations(suggestionsResponse.data.recommendations || []);
+    // Refresh the entire profile data
+    const profileResponse = await axios.get(`${API_BASE_URL}/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    
+    setUserData(profileResponse.data.user || {});
+    setSkills(profileResponse.data.skills || []);
+    setProjectHistory(profileResponse.data.projectHistory || []);
 
-      toast.success('Profile updated successfully');
-      setShowEditProfile(false);
-    } catch (err) {
-      console.error('Error updating profile:', err);
+    toast.success('Profile updated successfully');
+    setShowEditProfile(false);
+  } catch (err) {
+    console.error('Error updating profile:', err);
+    
+    // More specific error messages
+    if (err.response?.data?.details) {
+      // Validation errors from backend
+      toast.error(`Validation error: ${err.response.data.details.join(', ')}`);
+    } else {
       toast.error(err.response?.data?.message || 'Failed to update profile');
     }
-  };
+  }
+};
 
   const handleInitiateSkillAssessment = () => {
     if (!selectedSkill) {
@@ -719,8 +725,9 @@ function EditProfileModal({ userData, onClose, onSave }) {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 1024 * 1024 * 1024) {
-        toast.error('Image size must be less than 1GB');
+      // Fixed: Changed from 1GB to 10MB to match backend validation
+      if (file.size > 1024 * 1024 * 10) {
+        toast.error('Image size must be less than 10MB');
         return;
       }
 
@@ -740,21 +747,41 @@ function EditProfileModal({ userData, onClose, onSave }) {
   };
 
   const handleSaveChanges = async () => {
-    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
-      toast.error('Please fill all required fields');
+    // Enhanced validation
+    if (!firstName.trim()) {
+      toast.error('First name is required');
+      return;
+    }
+    if (!lastName.trim()) {
+      toast.error('Last name is required');
+      return;
+    }
+    if (!email.trim()) {
+      toast.error('Email is required');
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error('Please enter a valid email address');
       return;
     }
 
     setSaving(true);
     try {
+      // Send all data in one call to onSave
       await onSave({
-        firstName,
-        lastName,
-        email,
-        course,
-        yearLevel,
-        profilePicture,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim(),
+        course: course?.trim() || '',
+        yearLevel: yearLevel || '',
+        profilePicture: profilePicture,
       });
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      // Error is already handled in the parent component
     } finally {
       setSaving(false);
     }
@@ -813,14 +840,16 @@ function EditProfileModal({ userData, onClose, onSave }) {
               </label>
 
               <p className="text-xs text-gray-500 mt-3 text-center">
-                Tap the image to change. Max size: 1GB. JPG, PNG, GIF, WEBP, SVG supported.
+                Tap the image to change. Max size: 10MB. JPG, PNG, GIF, WEBP, SVG supported.
               </p>
             </div>
 
             <hr className="my-4" />
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Full Name <span className="text-red-500">*</span>
+              </label>
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -828,6 +857,7 @@ function EditProfileModal({ userData, onClose, onSave }) {
                   onChange={(e) => setFirstName(e.target.value)}
                   placeholder="First Name"
                   className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
                 />
                 <input
                   type="text"
@@ -835,17 +865,21 @@ function EditProfileModal({ userData, onClose, onSave }) {
                   onChange={(e) => setLastName(e.target.value)}
                   placeholder="Last Name"
                   className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email <span className="text-red-500">*</span>
+              </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
               />
             </div>
 
@@ -872,6 +906,7 @@ function EditProfileModal({ userData, onClose, onSave }) {
                 <option value="2nd Year">2nd Year</option>
                 <option value="3rd Year">3rd Year</option>
                 <option value="4th Year">4th Year</option>
+                <option value="5th Year">5th Year</option>
               </select>
             </div>
           </div>
@@ -879,14 +914,15 @@ function EditProfileModal({ userData, onClose, onSave }) {
           <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-100">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-lg text-sm text-gray-700 border border-gray-300 hover:bg-gray-50"
+              disabled={saving}
+              className="px-4 py-2 rounded-lg text-sm text-gray-700 border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               onClick={handleSaveChanges}
               disabled={saving}
-              className="px-6 py-2 rounded-lg text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400"
+              className="px-6 py-2 rounded-lg text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
             >
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
@@ -905,6 +941,7 @@ function AddSkillModal({
   onClose,
   onStartAssessment,
 }) {
+  const { isDarkMode } = useTheme();
   const availableSkills = Object.keys(skillAssessmentData[selectedCategory] || {});
 
   return (
@@ -912,44 +949,101 @@ function AddSkillModal({
       <div className="absolute inset-0 bg-black/75" onClick={onClose}></div>
 
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="w-full max-w-lg bg-white rounded-xl shadow-xl">
-          <div className="flex items-start justify-between p-5 border-b border-gray-100">
+        <div className={`w-full max-w-lg rounded-xl shadow-xl ${
+          isDarkMode 
+            ? 'bg-card border border-border' 
+            : 'bg-white'
+        }`}>
+          <div className={`flex items-start justify-between p-5 border-b ${
+            isDarkMode 
+              ? 'border-border' 
+              : 'border-gray-100'
+          }`}>
             <div>
-              <h3 className="text-[15px] font-semibold text-gray-900">Add New Skill</h3>
-              <p className="text-sm text-gray-500">Select a skill and start your assessment</p>
+              <h3 className={`text-[15px] font-semibold ${
+                isDarkMode 
+                  ? 'text-card-foreground' 
+                  : 'text-gray-900'
+              }`}>
+                Add New Skill
+              </h3>
+              <p className={`text-sm ${
+                isDarkMode 
+                  ? 'text-muted-foreground' 
+                  : 'text-gray-500'
+              }`}>
+                Select a skill and start your assessment
+              </p>
             </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl">
+            <button 
+              onClick={onClose} 
+              className={`text-xl ${
+                isDarkMode 
+                  ? 'text-muted-foreground hover:text-card-foreground' 
+                  : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
               ✕
             </button>
           </div>
 
           <div className="p-5 space-y-5">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
+              <label className={`block text-xs font-medium mb-1 ${
+                isDarkMode 
+                  ? 'text-muted-foreground' 
+                  : 'text-gray-700'
+              }`}>
+                Category
+              </label>
               <select
                 value={selectedCategory}
                 onChange={(e) => {
                   setSelectedCategory(e.target.value);
                   setSelectedSkill('');
                 }}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary ${
+                  isDarkMode 
+                    ? 'border-border bg-card text-card-foreground' 
+                    : 'border-gray-300 text-gray-900 focus:ring-blue-500'
+                }`}
               >
                 <option value="PROGRAMMING">Programming</option>
                 <option value="WEB DEVELOPMENT">Web Development</option>
                 <option value="UI/UX DESIGN">UI/UX Design</option>
                 <option value="FRONTEND">Frontend</option>
                 <option value="BACKEND">Backend</option>
-                <option value="TOOLS">Tools</option>
+                <option value="TOOLS">Programming Tools</option>
+                <option value="MOBILE DEVELOPMENT">Mobile Development</option>
+                <option value="DATA SCIENCE">Data Science</option>
+                <option value="DEVOPS & CLOUD">DevOps & Cloud</option>
+                <option value="PROJECT MANAGEMENT">Project Management</option>
+                <option value="CYBERSECURITY">Cyber Security</option>
+                <option value="SOFTWARE ARCHITECTURE">Software Architecture</option>
+                <option value="QUALITY ASSURANCE">Quality Assurance</option>
+                <option value="BUSINESS & PRODUCT">Business & Products</option>
+                <option value="IT & INFRASTRUCTURE">IT & Infrastructure</option>
+                
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Skill</label>
+              <label className={`block text-xs font-medium mb-1 ${
+                isDarkMode 
+                  ? 'text-muted-foreground' 
+                  : 'text-gray-700'
+              }`}>
+                Skill
+              </label>
               <div className="relative">
                 <select
                   value={selectedSkill}
                   onChange={(e) => setSelectedSkill(e.target.value)}
-                  className="w-full appearance-none border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full appearance-none border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary ${
+                    isDarkMode 
+                      ? 'border-border bg-card text-card-foreground' 
+                      : 'border-gray-300 text-gray-900 focus:ring-blue-500'
+                  }`}
                   disabled={!selectedCategory || availableSkills.length === 0}
                 >
                   <option value="">Select a skill</option>
@@ -959,18 +1053,30 @@ function AddSkillModal({
                     </option>
                   ))}
                 </select>
-                <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <div className={`pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 ${
+                  isDarkMode 
+                    ? 'text-muted-foreground' 
+                    : 'text-gray-400'
+                }`}>
                   ▾
                 </div>
               </div>
               {selectedCategory && availableSkills.length === 0 && (
-                <p className="text-xs text-red-500 mt-1">No skills available in this category</p>
+                <p className="text-xs text-destructive mt-1">No skills available in this category</p>
               )}
             </div>
 
             {selectedSkill && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-xs text-blue-900">
+              <div className={`border rounded-lg p-4 ${
+                isDarkMode 
+                  ? 'bg-primary/10 border-primary/20' 
+                  : 'bg-blue-50 border-blue-200'
+              }`}>
+                <p className={`text-xs ${
+                  isDarkMode 
+                    ? 'text-primary' 
+                    : 'text-blue-900'
+                }`}>
                   <strong>Next Step:</strong> You'll complete a skill assessment based on practical
                   activities to determine your proficiency level accurately.
                 </p>
@@ -978,25 +1084,41 @@ function AddSkillModal({
             )}
 
             {!selectedSkill && selectedCategory && (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <p className="text-xs text-gray-700">
+              <div className={`border rounded-lg p-4 ${
+                isDarkMode 
+                  ? 'bg-muted border-border' 
+                  : 'bg-gray-50 border-gray-200'
+              }`}>
+                <p className={`text-xs ${
+                  isDarkMode 
+                    ? 'text-muted-foreground' 
+                    : 'text-gray-700'
+                }`}>
                   <strong>Note:</strong> Please select a skill from the dropdown above to continue.
                 </p>
               </div>
             )}
           </div>
 
-          <div className="flex items-center justify-end gap-3 p-5 border-t border-gray-100">
+          <div className={`flex items-center justify-end gap-3 p-5 border-t ${
+            isDarkMode 
+              ? 'border-border' 
+              : 'border-gray-100'
+          }`}>
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-lg text-sm text-gray-700 border border-gray-300 hover:bg-gray-50"
+              className={`px-4 py-2 rounded-lg text-sm border transition-colors ${
+                isDarkMode 
+                  ? 'text-muted-foreground border-border hover:bg-muted' 
+                  : 'text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
             >
               Cancel
             </button>
             <button
               onClick={onStartAssessment}
               disabled={!selectedSkill}
-              className="px-4 py-2 rounded-lg text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 rounded-lg text-sm text-primary-foreground bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed transition-colors"
             >
               Start Assessment
             </button>
@@ -1008,6 +1130,7 @@ function AddSkillModal({
 }
 
 function SkillAssessmentModal({ assessmentData, setAssessmentData, onClose, onComplete }) {
+  const { isDarkMode } = useTheme();
   const [saving, setSaving] = useState(false);
 
   const calculateProficiency = () => {
@@ -1058,27 +1181,78 @@ function SkillAssessmentModal({ assessmentData, setAssessmentData, onClose, onCo
       <div className="absolute inset-0 bg-black/75" onClick={onClose}></div>
 
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="w-full max-w-2xl bg-white rounded-xl shadow-xl max-h-[90vh] overflow-y-auto">
-          <div className="sticky top-0 bg-white flex items-start justify-between p-6 border-b border-gray-100">
+        <div className={`w-full max-w-2xl rounded-xl shadow-xl max-h-[90vh] overflow-y-auto ${
+          isDarkMode 
+            ? 'bg-card border border-border' 
+            : 'bg-white'
+        }`}>
+          <div className={`sticky top-0 flex items-start justify-between p-6 border-b ${
+            isDarkMode 
+              ? 'bg-card border-border' 
+              : 'bg-white border-gray-100'
+          }`}>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Skill Assessment: {assessmentData.skill}</h3>
-              <p className="text-sm text-gray-500">Check the activities you can confidently perform</p>
+              <h3 className={`text-lg font-semibold ${
+                isDarkMode 
+                  ? 'text-card-foreground' 
+                  : 'text-gray-900'
+              }`}>
+                Skill Assessment: {assessmentData.skill}
+              </h3>
+              <p className={`text-sm ${
+                isDarkMode 
+                  ? 'text-muted-foreground' 
+                  : 'text-gray-500'
+              }`}>
+                Check the activities you can confidently perform
+              </p>
             </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl">
+            <button 
+              onClick={onClose} 
+              className={`text-xl ${
+                isDarkMode 
+                  ? 'text-muted-foreground hover:text-card-foreground' 
+                  : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
               ✕
             </button>
           </div>
 
           <div className="p-6 space-y-6">
             {/* Progress */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
+            <div className={`rounded-lg p-4 border ${
+              isDarkMode 
+                ? 'bg-primary/10 border-primary/20' 
+                : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200'
+            }`}>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Assessment Progress</span>
-                <span className="text-sm font-semibold text-blue-600">{checkedActivities} / {totalActivities}</span>
+                <span className={`text-sm font-medium ${
+                  isDarkMode 
+                    ? 'text-card-foreground' 
+                    : 'text-gray-700'
+                }`}>
+                  Assessment Progress
+                </span>
+                <span className={`text-sm font-semibold ${
+                  isDarkMode 
+                    ? 'text-primary' 
+                    : 'text-blue-600'
+                }`}>
+                  {checkedActivities} / {totalActivities}
+                </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className={`w-full rounded-full h-2 ${
+                isDarkMode 
+                  ? 'bg-muted' 
+                  : 'bg-gray-200'
+              }`}>
                 <div
-                  className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-300"
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    isDarkMode 
+                      ? 'bg-primary' 
+                      : 'bg-gradient-to-r from-blue-500 to-indigo-600'
+                  }`}
                   style={{ width: `${(checkedActivities / totalActivities) * 100}%` }}
                 ></div>
               </div>
@@ -1088,8 +1262,18 @@ function SkillAssessmentModal({ assessmentData, setAssessmentData, onClose, onCo
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <Circle className="w-5 h-5 text-red-500" fill="currentColor" />
-                <h4 className="font-semibold text-gray-900">Beginner (0-40%)</h4>
-                <span className="text-xs font-medium text-gray-500">
+                <h4 className={`font-semibold ${
+                  isDarkMode 
+                    ? 'text-card-foreground' 
+                    : 'text-gray-900'
+                }`}>
+                  Beginner (0-40%)
+                </h4>
+                <span className={`text-xs font-medium ${
+                  isDarkMode 
+                    ? 'text-muted-foreground' 
+                    : 'text-gray-500'
+                }`}>
                   {assessmentData.activities.BEGINNER.filter((a) => a.checked).length}/
                   {assessmentData.activities.BEGINNER.length}
                 </span>
@@ -1101,9 +1285,17 @@ function SkillAssessmentModal({ assessmentData, setAssessmentData, onClose, onCo
                       type="checkbox"
                       checked={activity.checked}
                       onChange={() => toggleActivity('BEGINNER', index)}
-                      className="mt-1 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className={`mt-1 w-4 h-4 rounded focus:ring-2 focus:ring-primary ${
+                        isDarkMode 
+                          ? 'border-border bg-card text-primary' 
+                          : 'border-gray-300 text-blue-600 focus:ring-blue-500'
+                      }`}
                     />
-                    <span className="text-sm text-gray-700 group-hover:text-gray-900">
+                    <span className={`text-sm group-hover:opacity-80 ${
+                      isDarkMode 
+                        ? 'text-muted-foreground group-hover:text-card-foreground' 
+                        : 'text-gray-700 group-hover:text-gray-900'
+                    }`}>
                       {activity.text}
                     </span>
                   </label>
@@ -1115,8 +1307,18 @@ function SkillAssessmentModal({ assessmentData, setAssessmentData, onClose, onCo
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <Circle className="w-5 h-5 text-yellow-500" fill="currentColor" />
-                <h4 className="font-semibold text-gray-900">Intermediate (41-70%)</h4>
-                <span className="text-xs font-medium text-gray-500">
+                <h4 className={`font-semibold ${
+                  isDarkMode 
+                    ? 'text-card-foreground' 
+                    : 'text-gray-900'
+                }`}>
+                  Intermediate (41-70%)
+                </h4>
+                <span className={`text-xs font-medium ${
+                  isDarkMode 
+                    ? 'text-muted-foreground' 
+                    : 'text-gray-500'
+                }`}>
                   {assessmentData.activities.INTERMEDIATE.filter((a) => a.checked).length}/
                   {assessmentData.activities.INTERMEDIATE.length}
                 </span>
@@ -1128,9 +1330,17 @@ function SkillAssessmentModal({ assessmentData, setAssessmentData, onClose, onCo
                       type="checkbox"
                       checked={activity.checked}
                       onChange={() => toggleActivity('INTERMEDIATE', index)}
-                      className="mt-1 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className={`mt-1 w-4 h-4 rounded focus:ring-2 focus:ring-primary ${
+                        isDarkMode 
+                          ? 'border-border bg-card text-primary' 
+                          : 'border-gray-300 text-blue-600 focus:ring-blue-500'
+                      }`}
                     />
-                    <span className="text-sm text-gray-700 group-hover:text-gray-900">
+                    <span className={`text-sm group-hover:opacity-80 ${
+                      isDarkMode 
+                        ? 'text-muted-foreground group-hover:text-card-foreground' 
+                        : 'text-gray-700 group-hover:text-gray-900'
+                    }`}>
                       {activity.text}
                     </span>
                   </label>
@@ -1142,8 +1352,18 @@ function SkillAssessmentModal({ assessmentData, setAssessmentData, onClose, onCo
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <Circle className="w-5 h-5 text-green-500" fill="currentColor" />
-                <h4 className="font-semibold text-gray-900">Expert (71-100%)</h4>
-                <span className="text-xs font-medium text-gray-500">
+                <h4 className={`font-semibold ${
+                  isDarkMode 
+                    ? 'text-card-foreground' 
+                    : 'text-gray-900'
+                }`}>
+                  Expert (71-100%)
+                </h4>
+                <span className={`text-xs font-medium ${
+                  isDarkMode 
+                    ? 'text-muted-foreground' 
+                    : 'text-gray-500'
+                }`}>
                   {assessmentData.activities.EXPERT.filter((a) => a.checked).length}/
                   {assessmentData.activities.EXPERT.length}
                 </span>
@@ -1155,9 +1375,17 @@ function SkillAssessmentModal({ assessmentData, setAssessmentData, onClose, onCo
                       type="checkbox"
                       checked={activity.checked}
                       onChange={() => toggleActivity('EXPERT', index)}
-                      className="mt-1 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className={`mt-1 w-4 h-4 rounded focus:ring-2 focus:ring-primary ${
+                        isDarkMode 
+                          ? 'border-border bg-card text-primary' 
+                          : 'border-gray-300 text-blue-600 focus:ring-blue-500'
+                      }`}
                     />
-                    <span className="text-sm text-gray-700 group-hover:text-gray-900">
+                    <span className={`text-sm group-hover:opacity-80 ${
+                      isDarkMode 
+                        ? 'text-muted-foreground group-hover:text-card-foreground' 
+                        : 'text-gray-700 group-hover:text-gray-900'
+                    }`}>
                       {activity.text}
                     </span>
                   </label>
@@ -1166,18 +1394,46 @@ function SkillAssessmentModal({ assessmentData, setAssessmentData, onClose, onCo
             </div>
 
             {/* Estimated Proficiency */}
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
-              <p className="text-xs text-gray-600 mb-2">Estimated Proficiency Level</p>
+            <div className={`rounded-lg p-4 border ${
+              isDarkMode 
+                ? 'bg-success/10 border-success/20' 
+                : 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200'
+            }`}>
+              <p className={`text-xs mb-2 ${
+                isDarkMode 
+                  ? 'text-muted-foreground' 
+                  : 'text-gray-600'
+              }`}>
+                Estimated Proficiency Level
+              </p>
               <div className="flex items-end gap-3">
                 <div>
-                  <div className="text-3xl font-bold text-green-600">{proficiency}%</div>
-                  <p className="text-xs text-gray-600 mt-1">
+                  <div className={`text-3xl font-bold ${
+                    isDarkMode 
+                      ? 'text-success' 
+                      : 'text-green-600'
+                  }`}>
+                    {proficiency}%
+                  </div>
+                  <p className={`text-xs mt-1 ${
+                    isDarkMode 
+                      ? 'text-muted-foreground' 
+                      : 'text-gray-600'
+                  }`}>
                     {proficiency <= 40 ? 'Beginner' : proficiency <= 70 ? 'Intermediate' : 'Expert'}
                   </p>
                 </div>
-                <div className="flex-1 h-1 bg-green-200 rounded-full">
+                <div className={`flex-1 h-1 rounded-full ${
+                  isDarkMode 
+                    ? 'bg-success/20' 
+                    : 'bg-green-200'
+                }`}>
                   <div
-                    className="h-1 rounded-full bg-green-600 transition-all duration-300"
+                    className={`h-1 rounded-full transition-all duration-300 ${
+                      isDarkMode 
+                        ? 'bg-success' 
+                        : 'bg-green-600'
+                    }`}
                     style={{ width: `${proficiency}%` }}
                   ></div>
                 </div>
@@ -1185,17 +1441,25 @@ function SkillAssessmentModal({ assessmentData, setAssessmentData, onClose, onCo
             </div>
           </div>
 
-          <div className="sticky bottom-0 bg-white flex items-center justify-end gap-3 p-6 border-t border-gray-100">
+          <div className={`sticky bottom-0 flex items-center justify-end gap-3 p-6 border-t ${
+            isDarkMode 
+              ? 'bg-card border-border' 
+              : 'bg-white border-gray-100'
+          }`}>
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-lg text-sm text-gray-700 border border-gray-300 hover:bg-gray-50"
+              className={`px-4 py-2 rounded-lg text-sm border transition-colors ${
+                isDarkMode 
+                  ? 'text-muted-foreground border-border hover:bg-muted' 
+                  : 'text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
             >
               Cancel
             </button>
             <button
               onClick={handleCompleteAssessment}
               disabled={saving}
-              className="px-6 py-2 rounded-lg text-sm text-white bg-green-600 hover:bg-green-700 disabled:bg-green-400 flex items-center gap-2"
+              className="px-6 py-2 rounded-lg text-sm text-success-foreground bg-success hover:bg-success/90 disabled:bg-muted disabled:text-muted-foreground flex items-center gap-2 transition-colors"
             >
               {saving ? (
                 'Saving...'

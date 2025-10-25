@@ -18,7 +18,6 @@ import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
-// Mock data for user skills
 const mockUserSkills = [
   { skillId: '1', skillName: 'JavaScript', proficiency: 85, category: 'Programming' },
   { skillId: '2', skillName: 'React', proficiency: 80, category: 'Web Development' },
@@ -32,7 +31,6 @@ const mockUserSkills = [
   { skillId: '10', skillName: 'Database Design', proficiency: 45, category: 'Backend' },
 ];
 
-// Mock data for recommendations
 const mockRecommendations = [
   {
     id: '1',
@@ -66,7 +64,6 @@ const mockRecommendations = [
   }
 ];
 
-// Mock data for career matches
 const mockCareerMatches = [
   {
     id: '1',
@@ -94,22 +91,22 @@ const mockCareerMatches = [
   }
 ];
 
-const recent = [
-  { title: 'JavaScript Mastery', desc: 'Reached 85% proficiency', time: '2 days ago', icon: TrendingUp },
-  { title: 'Project Completed', desc: 'E-Commerce Platform', time: '1 week ago', icon: Briefcase },
-  { title: 'New Skill Added', desc: 'TypeScript', time: '2 weeks ago', icon: Users },
+const mockRecentActivity = [
+  { title: 'Welcome to SkillSync', desc: 'Start building your skills profile', time: 'Just now', icon: TrendingUp },
+  { title: 'Add Your First Skill', desc: 'Begin your learning journey', time: 'Get started', icon: Users },
+  { title: 'Explore Career Paths', desc: 'Discover your potential careers', time: 'Available', icon: Briefcase },
 ];
 
 export default function Dashboard() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userData, setUserData] = useState(null);
+  const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { isDarkMode, toggleDarkMode } = useTheme();
 
-  // Fetch user data
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchDashboardData = async () => {
       try {
         setLoading(true);
         const token = localStorage.getItem('token');
@@ -119,43 +116,51 @@ export default function Dashboard() {
           return;
         }
 
-        const response = await axios.get(`${API_BASE_URL}/settings/user`, {
+        const userResponse = await axios.get(`${API_BASE_URL}/settings/user`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
         
-        setUserData(response.data);
+        setUserData(userResponse.data);
+
+        const dashboardResponse = await axios.get(`${API_BASE_URL}/dashboard`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (dashboardResponse.data.success) {
+          setDashboardData(dashboardResponse.data.data);
+        } else {
+          throw new Error('Failed to fetch dashboard data');
+        }
+
       } catch (err) {
-        console.error('Error fetching user:', err);
-        toast.error('Failed to load user data');
-        navigate('/');
+        console.error('Error fetching dashboard data:', err);
+        
+        setDashboardData({
+          summary: {
+            skillsMastered: mockUserSkills.filter(s => s.proficiency >= 80).length,
+            skillsInProgress: mockUserSkills.filter(s => s.proficiency >= 50 && s.proficiency < 80).length,
+            skillGaps: mockRecommendations.length,
+            projects: 4
+          },
+          skills: mockUserSkills.slice(0, 8),
+          recommendations: mockRecommendations,
+          careerMatches: mockCareerMatches,
+          recentActivity: mockRecentActivity
+        });
+        
+        toast.error('Using demo data - some features may be limited');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUserData();
+    fetchDashboardData();
   }, [navigate]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Dynamic calculations
-  const skillsMastered = mockUserSkills.filter(s => s.proficiency >= 80).length;
-  const skillsInProgress = mockUserSkills.filter(s => s.proficiency >= 50 && s.proficiency < 80).length;
-  const skillGaps = mockRecommendations.length;
-  const projects = 4;
-
-  // Helper functions
   const getProficiencyColor = (proficiency) => {
     if (proficiency >= 80) return 'bg-[#10B981]';
     if (proficiency >= 60) return 'bg-[#14B8A6]';
@@ -182,12 +187,6 @@ export default function Dashboard() {
     return 'bg-orange-500';
   };
 
-  const handleStartLearning = (courseNumber) => {
-    toast.success(`Started learning Suggested Course #${courseNumber}!`, {
-      description: 'Redirecting to the course content...'
-    });
-  };
-
   const handleLearnMore = (recommendation) => {
     navigate('/suggestions');
   };
@@ -200,13 +199,39 @@ export default function Dashboard() {
     navigate('/profile');
   };
 
-  const handleViewHistory = () => {
-    navigate('/roles');
-  };
-
   const handleViewAllRecommendations = () => {
     navigate('/suggestions');
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!dashboardData) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground">Failed to load dashboard data</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const { summary, skills, recommendations, careerMatches, recentActivity } = dashboardData;
+  const { skillsMastered, skillsInProgress, skillGaps, projects } = summary;
 
   return (
     <div className="min-h-screen bg-background">
@@ -219,11 +244,12 @@ export default function Dashboard() {
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <header className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Welcome back, {userData?.firstName}!</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+            Welcome back, {userData?.firstName || 'User'}!
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">Here's your skill development overview</p>
         </header>
 
-        {/* Summary cards */}
         <section className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
           <SummaryCard 
             label="Skills Mastered" 
@@ -260,7 +286,6 @@ export default function Dashboard() {
         </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left: Skills map */}
           <section className="lg:col-span-2 bg-card rounded-xl border border-border p-6 hover:shadow-md transition-all duration-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -273,7 +298,7 @@ export default function Dashboard() {
             </div>
 
             <div className="space-y-5">
-              {mockUserSkills.slice(0, 8).map((skill) => (
+              {skills.map((skill) => (
                 <div key={skill.skillId} className="bg-muted/30 rounded-lg p-4 border border-border">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -305,7 +330,6 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* Right: Recent Activity */}
           <aside className="bg-card rounded-xl border border-border p-6 hover:shadow-md transition-all duration-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
@@ -317,31 +341,28 @@ export default function Dashboard() {
               </div>
             </div>
             
-            <div className="space-y-4">
-              {recent.map((r, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg border border-border">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 text-primary grid place-items-center flex-shrink-0">
-                    <r.icon size={16} />
+            <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
+              {recentActivity.map((r, idx) => {
+                const IconComponent = r.icon === 'TrendingUp' ? TrendingUp : 
+                                   r.icon === 'Users' ? Users : 
+                                   r.icon === 'Briefcase' ? Briefcase : TrendingUp;
+                return (
+                  <div key={idx} className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg border border-border">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary grid place-items-center flex-shrink-0">
+                      <IconComponent size={16} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-card-foreground">{r.title}</div>
+                      <div className="text-xs text-muted-foreground">{r.desc}</div>
+                      <div className="text-xs text-muted-foreground mt-1">{r.time}</div>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-card-foreground">{r.title}</div>
-                    <div className="text-xs text-muted-foreground">{r.desc}</div>
-                    <div className="text-xs text-muted-foreground mt-1">{r.time}</div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
-            
-            <button 
-              onClick={handleViewHistory}
-              className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-card-foreground border border-border rounded-[12px] hover:bg-muted transition-colors"
-            >
-              View History <ChevronRight size={16} />
-            </button>
           </aside>
         </div>
 
-        {/* Recommendations */}
         <section className="mt-8 bg-card rounded-xl border border-border p-6 hover:shadow-md transition-all duration-200">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
@@ -362,7 +383,7 @@ export default function Dashboard() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {mockRecommendations.map((recommendation) => (
+            {recommendations.map((recommendation) => (
               <div key={recommendation.id} className="bg-muted/30 rounded-xl border border-border p-6 hover:shadow-sm transition-all duration-200">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center">
@@ -394,7 +415,6 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* Career Path Match Section */}
         <section className="mt-8 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-2xl border-2 border-primary/20 p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
@@ -415,7 +435,7 @@ export default function Dashboard() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {mockCareerMatches.map((career) => (
+            {careerMatches.map((career) => (
               <div key={career.id} className="bg-card rounded-xl border border-border p-6 hover:shadow-md transition-all duration-200">
                 <div className="flex items-center gap-4 mb-4">
                   <span className="text-3xl">{career.emoji}</span>

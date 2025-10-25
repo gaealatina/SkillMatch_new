@@ -815,5 +815,583 @@ export const skillAssessmentData = {
         "Can lead GitHub adoption and governance"
       ]
     }
+  },
+  "MOBILE DEVELOPMENT": {
+    "React Native": {
+      BEGINNER: [
+        "Can create basic mobile app components with JSX",
+        "Can use core components (View, Text, Image) effectively",
+        "Can implement basic navigation between screens",
+        "Can handle touch events and user interactions",
+        "Can style components using StyleSheet API"
+      ],
+      INTERMEDIATE: [
+        "Can implement native modules and bridge communication",
+        "Can optimize app performance and reduce bundle size",
+        "Can handle platform-specific code and designs",
+        "Can implement push notifications and device APIs",
+        "Can manage state effectively in mobile applications"
+      ],
+      EXPERT: [
+        "Can architect complex cross-platform mobile applications",
+        "Can build and publish apps to both iOS and Android stores",
+        "Can implement advanced animations and gestures",
+        "Can optimize app startup time and memory usage",
+        "Can lead mobile development teams and best practices"
+      ]
+    },
+    "Flutter": {
+      BEGINNER: [
+        "Can create basic Flutter widgets and layouts",
+        "Can understand Dart syntax and basic concepts",
+        "Can use Material Design and Cupertino widgets",
+        "Can handle basic state management with setState",
+        "Can implement simple navigation and routing"
+      ],
+      INTERMEDIATE: [
+        "Can implement advanced state management (Bloc, Provider)",
+        "Can create custom widgets and animations",
+        "Can work with platform channels for native functionality",
+        "Can optimize app performance and reduce jank",
+        "Can implement responsive designs for multiple screen sizes"
+      ],
+      EXPERT: [
+        "Can architect complex Flutter applications with clean architecture",
+        "Can build custom render objects and low-level widgets",
+        "Can implement advanced platform integrations",
+        "Can optimize app size and startup performance",
+        "Can contribute to Flutter ecosystem and packages"
+      ]
+    },
+    "iOS Development": {
+      BEGINNER: [
+        "Can create basic UI with UIKit or SwiftUI",
+        "Can understand Swift syntax and basic concepts",
+        "Can implement simple view controllers and navigation",
+        "Can work with Auto Layout for responsive designs",
+        "Can handle basic user input and events"
+      ],
+      INTERMEDIATE: [
+        "Can implement complex UI with custom components",
+        "Can work with Core Data for local storage",
+        "Can implement networking and API integrations",
+        "Can handle memory management and ARC",
+        "Can implement custom animations and transitions"
+      ],
+      EXPERT: [
+        "Can architect complex iOS applications with clean architecture",
+        "Can optimize app performance and battery usage",
+        "Can implement advanced Core Animation and graphics",
+        "Can handle app store submission and review process",
+        "Can lead iOS development teams and best practices"
+      ]
+    },
+    "Android Development": {
+      BEGINNER: [
+        "Can create basic activities and fragments",
+        "Can understand Kotlin/Java syntax and basic concepts",
+        "Can work with XML layouts and View components",
+        "Can implement simple navigation between screens",
+        "Can handle basic user input and events"
+      ],
+      INTERMEDIATE: [
+        "Can implement complex RecyclerView adapters",
+        "Can work with Room database for local storage",
+        "Can implement ViewModel and LiveData patterns",
+        "Can handle background tasks with WorkManager",
+        "Can implement custom views and animations"
+      ],
+      EXPERT: [
+        "Can architect complex Android applications with clean architecture",
+        "Can optimize app performance and memory usage",
+        "Can implement advanced Jetpack Compose UI",
+        "Can handle Google Play store submission process",
+        "Can lead Android development teams and best practices"
+      ]
+    }
+  },
+
+  "DATA SCIENCE": {
+    "Machine Learning": {
+      BEGINNER: [
+        "Can understand basic ML concepts (supervised/unsupervised learning)",
+        "Can implement simple linear regression models",
+        "Can use scikit-learn for basic classification tasks",
+        "Can evaluate model performance with basic metrics",
+        "Can preprocess data for ML pipelines"
+      ],
+      INTERMEDIATE: [
+        "Can implement complex models (neural networks, ensemble methods)",
+        "Can perform feature engineering and selection",
+        "Can optimize hyperparameters for model performance",
+        "Can work with cross-validation and train/test splits",
+        "Can interpret model results and feature importance"
+      ],
+      EXPERT: [
+        "Can design and implement end-to-end ML systems",
+        "Can deploy models to production environments",
+        "Can implement advanced deep learning architectures",
+        "Can optimize models for scalability and performance",
+        "Can lead ML research and development projects"
+      ]
+    },
+    "Data Analysis": {
+      BEGINNER: [
+        "Can use Pandas for basic data manipulation",
+        "Can create simple visualizations with Matplotlib/Seaborn",
+        "Can perform basic statistical analysis",
+        "Can clean and preprocess datasets",
+        "Can generate basic summary statistics and reports"
+      ],
+      INTERMEDIATE: [
+        "Can perform advanced data aggregation and transformation",
+        "Can create complex interactive visualizations",
+        "Can implement statistical hypothesis testing",
+        "Can work with time series data analysis",
+        "Can communicate insights effectively to stakeholders"
+      ],
+      EXPERT: [
+        "Can design and implement comprehensive analytics systems",
+        "Can build predictive models and forecasting systems",
+        "Can optimize data pipelines for performance",
+        "Can lead data-driven decision making in organizations",
+        "Can mentor teams in data analysis best practices"
+      ]
+    },
+    "Data Visualization": {
+      BEGINNER: [
+        "Can create basic charts (bar, line, scatter plots)",
+        "Can use color and typography effectively in visualizations",
+        "Can understand basic data visualization principles",
+        "Can use tools like Tableau or Power BI for basic dashboards",
+        "Can interpret and explain simple visualizations"
+      ],
+      INTERMEDIATE: [
+        "Can create interactive visualizations with D3.js or similar",
+        "Can design effective dashboards for business intelligence",
+        "Can implement advanced chart types and custom visualizations",
+        "Can optimize visualizations for performance and clarity",
+        "Can tell compelling stories with data"
+      ],
+      EXPERT: [
+        "Can architect enterprise-level data visualization systems",
+        "Can design and build custom visualization libraries",
+        "Can implement real-time data streaming visualizations",
+        "Can lead data visualization strategy for organizations",
+        "Can contribute to data visualization research and innovation"
+      ]
+    }
+  },
+
+  "DEVOPS & CLOUD": {
+    "AWS": {
+      BEGINNER: [
+        "Can create and manage EC2 instances",
+        "Can work with S3 for object storage",
+        "Can understand basic IAM roles and policies",
+        "Can use RDS for managed databases",
+        "Can monitor services with CloudWatch"
+      ],
+      INTERMEDIATE: [
+        "Can implement auto-scaling and load balancing",
+        "Can work with Lambda functions and serverless architecture",
+        "Can implement VPC networking and security groups",
+        "Can use CloudFormation for infrastructure as code",
+        "Can optimize costs and resource utilization"
+      ],
+      EXPERT: [
+        "Can architect complex multi-region AWS solutions",
+        "Can implement advanced security and compliance controls",
+        "Can optimize performance and costs at enterprise scale",
+        "Can design disaster recovery and business continuity plans",
+        "Can lead cloud strategy and migration projects"
+      ]
+    },
+    "Kubernetes": {
+      BEGINNER: [
+        "Can create basic pods and deployments",
+        "Can understand Kubernetes architecture and components",
+        "Can use kubectl for basic cluster operations",
+        "Can create and manage services",
+        "Can work with basic configuration maps and secrets"
+      ],
+      INTERMEDIATE: [
+        "Can implement advanced deployment strategies (blue-green, canary)",
+        "Can manage stateful applications with StatefulSets",
+        "Can implement network policies and security contexts",
+        "Can use Helm for package management",
+        "Can monitor and troubleshoot cluster issues"
+      ],
+      EXPERT: [
+        "Can design and manage multi-cluster Kubernetes environments",
+        "Can implement custom operators and controllers",
+        "Can optimize cluster performance and resource utilization",
+        "Can design and implement GitOps workflows",
+        "Can lead Kubernetes platform engineering teams"
+      ]
+    },
+    "CI/CD": {
+      BEGINNER: [
+        "Can understand basic CI/CD concepts and benefits",
+        "Can create simple pipeline scripts",
+        "Can set up basic automated testing in pipelines",
+        "Can use version control with CI systems",
+        "Can understand build and deployment stages"
+      ],
+      INTERMEDIATE: [
+        "Can design and implement complex pipeline workflows",
+        "Can optimize build times and caching strategies",
+        "Can implement security scanning in pipelines",
+        "Can manage environment-specific configurations",
+        "Can monitor pipeline performance and metrics"
+      ],
+      EXPERT: [
+        "Can architect enterprise-scale CI/CD platforms",
+        "Can implement advanced deployment strategies",
+        "Can design and build custom CI/CD tooling",
+        "Can optimize developer experience and productivity",
+        "Can lead DevOps transformation initiatives"
+      ]
+    }
+  },
+
+  "PROJECT MANAGEMENT": {
+    "Agile Methodology": {
+      BEGINNER: [
+        "Can understand basic Agile principles and values",
+        "Can participate in daily standups and sprint ceremonies",
+        "Can write basic user stories with acceptance criteria",
+        "Can use task boards (physical or digital)",
+        "Can estimate tasks using story points or hours"
+      ],
+      INTERMEDIATE: [
+        "Can facilitate sprint planning and retrospectives",
+        "Can manage product backlogs and prioritize features",
+        "Can track team velocity and sprint progress",
+        "Can identify and remove impediments for the team",
+        "Can create and maintain burn-down charts"
+      ],
+      EXPERT: [
+        "Can coach teams on Agile principles and practices",
+        "Can scale Agile across multiple teams and programs",
+        "Can implement metrics and reporting for stakeholders",
+        "Can customize Agile processes for organizational needs",
+        "Can lead Agile transformation initiatives"
+      ]
+    },
+    "Scrum": {
+      BEGINNER: [
+        "Can understand Scrum roles and responsibilities",
+        "Can participate in all Scrum ceremonies effectively",
+        "Can understand the definition of done",
+        "Can work with product backlog items",
+        "Can contribute to sprint goals and objectives"
+      ],
+      INTERMEDIATE: [
+        "Can facilitate Scrum ceremonies as Scrum Master",
+        "Can help team improve through retrospectives",
+        "Can manage stakeholder expectations and communication",
+        "Can identify and address team dysfunctions",
+        "Can coach team on Scrum framework and practices"
+      ],
+      EXPERT: [
+        "Can lead multiple Scrum teams as Senior Scrum Master",
+        "Can implement scaled Scrum frameworks (SAFe, LeSS)",
+        "Can mentor other Scrum Masters and Agile coaches",
+        "Can drive organizational change with Scrum principles",
+        "Can contribute to Agile community and best practices"
+      ]
+    },
+    "JIRA": {
+      BEGINNER: [
+        "Can create and update issues in JIRA",
+        "Can use basic filters and search functionality",
+        "Can understand workflow states and transitions",
+        "Can log work and update progress on tasks",
+        "Can use boards for task management"
+      ],
+      INTERMEDIATE: [
+        "Can create and customize dashboards and reports",
+        "Can set up and manage project workflows",
+        "Can create advanced JQL queries for reporting",
+        "Can manage user permissions and project settings",
+        "Can configure automation rules"
+      ],
+      EXPERT: [
+        "Can design and implement complex JIRA instances",
+        "Can integrate JIRA with other development tools",
+        "Can optimize JIRA performance for large organizations",
+        "Can create custom fields and screen schemes",
+        "Can lead JIRA administration and governance"
+      ]
+    }
+  },
+
+  "CYBERSECURITY": {
+    "Network Security": {
+      BEGINNER: [
+        "Can understand basic network protocols and their security implications",
+        "Can configure basic firewall rules",
+        "Can identify common network vulnerabilities",
+        "Can use basic network scanning tools",
+        "Can understand encryption and VPN concepts"
+      ],
+      INTERMEDIATE: [
+        "Can implement advanced firewall configurations",
+        "Can conduct network penetration testing",
+        "Can analyze network traffic for security threats",
+        "Can implement intrusion detection/prevention systems",
+        "Can design secure network architectures"
+      ],
+      EXPERT: [
+        "Can architect enterprise-level network security solutions",
+        "Can conduct advanced threat hunting and analysis",
+        "Can implement zero-trust network architectures",
+        "Can lead incident response for network security events",
+        "Can develop network security policies and standards"
+      ]
+    },
+    "Application Security": {
+      BEGINNER: [
+        "Can identify common web vulnerabilities (OWASP Top 10)",
+        "Can understand secure coding principles",
+        "Can use basic security testing tools",
+        "Can implement input validation and sanitization",
+        "Can understand authentication and authorization basics"
+      ],
+      INTERMEDIATE: [
+        "Can conduct code reviews for security issues",
+        "Can implement security testing in CI/CD pipelines",
+        "Can perform application penetration testing",
+        "Can implement advanced authentication mechanisms",
+        "Can work with security headers and protocols"
+      ],
+      EXPERT: [
+        "Can design and implement secure SDLC processes",
+        "Can architect application security frameworks",
+        "Can conduct advanced security research and testing",
+        "Can lead security incident response for applications",
+        "Can develop security training and awareness programs"
+      ]
+    }
+  },
+
+  "SOFTWARE ARCHITECTURE": {
+    "System Design": {
+      BEGINNER: [
+        "Can understand basic system components and their interactions",
+        "Can create simple system architecture diagrams",
+        "Can identify basic scalability and performance considerations",
+        "Can understand database design principles",
+        "Can work with basic design patterns"
+      ],
+      INTERMEDIATE: [
+        "Can design distributed systems with multiple components",
+        "Can implement caching strategies and CDN configurations",
+        "Can design for high availability and fault tolerance",
+        "Can optimize system performance and latency",
+        "Can make technology stack recommendations"
+      ],
+      EXPERT: [
+        "Can architect enterprise-scale distributed systems",
+        "Can design systems handling millions of users",
+        "Can optimize for cost, performance, and scalability",
+        "Can lead technical strategy and architecture decisions",
+        "Can mentor other architects and senior engineers"
+      ]
+    },
+    "Microservices": {
+      BEGINNER: [
+        "Can understand microservices architecture concepts",
+        "Can create simple microservices with REST APIs",
+        "Can understand service discovery and registration",
+        "Can implement basic inter-service communication",
+        "Can understand containerization basics"
+      ],
+      INTERMEDIATE: [
+        "Can design and implement complex microservices ecosystems",
+        "Can implement service mesh and API gateways",
+        "Can handle distributed transactions and eventual consistency",
+        "Can implement monitoring and observability in microservices",
+        "Can design for independent deployment and scaling"
+      ],
+      EXPERT: [
+        "Can architect large-scale microservices platforms",
+        "Can implement advanced patterns (CQRS, Event Sourcing)",
+        "Can optimize microservices performance and resource usage",
+        "Can lead microservices transformation initiatives",
+        "Can establish microservices best practices and standards"
+      ]
+    },
+    "API Design": {
+      BEGINNER: [
+        "Can create basic RESTful APIs with proper endpoints",
+        "Can use HTTP methods and status codes correctly",
+        "Can implement basic authentication and authorization",
+        "Can document APIs with basic specifications",
+        "Can handle basic error responses"
+      ],
+      INTERMEDIATE: [
+        "Can design comprehensive API contracts and schemas",
+        "Can implement advanced authentication (OAuth2, JWT)",
+        "Can optimize API performance and response times",
+        "Can implement rate limiting and throttling",
+        "Can create comprehensive API documentation"
+      ],
+      EXPERT: [
+        "Can architect enterprise API platforms and gateways",
+        "Can design and implement GraphQL schemas and resolvers",
+        "Can establish API governance and versioning strategies",
+        "Can optimize APIs for scale and security",
+        "Can lead API strategy and developer experience initiatives"
+      ]
+    }
+  },
+
+  "QUALITY ASSURANCE": {
+    "Test Automation": {
+      BEGINNER: [
+        "Can write basic unit tests for simple functions",
+        "Can understand test pyramid concepts",
+        "Can use basic testing frameworks (Jest, pytest)",
+        "Can write simple integration tests",
+        "Can understand test coverage basics"
+      ],
+      INTERMEDIATE: [
+        "Can implement comprehensive test automation frameworks",
+        "Can write end-to-end tests for complex applications",
+        "Can implement continuous testing in CI/CD pipelines",
+        "Can optimize test execution speed and reliability",
+        "Can work with mocking and test doubles"
+      ],
+      EXPERT: [
+        "Can architect enterprise test automation strategies",
+        "Can build custom testing tools and frameworks",
+        "Can implement advanced testing patterns and methodologies",
+        "Can optimize test maintenance and scalability",
+        "Can lead quality engineering initiatives"
+      ]
+    },
+    "Performance Testing": {
+      BEGINNER: [
+        "Can understand basic performance testing concepts",
+        "Can use basic load testing tools",
+        "Can identify common performance bottlenecks",
+        "Can measure basic performance metrics",
+        "Can understand caching and optimization principles"
+      ],
+      INTERMEDIATE: [
+        "Can design and execute comprehensive performance test plans",
+        "Can analyze performance test results and identify issues",
+        "Can implement performance monitoring and alerting",
+        "Can optimize application performance based on test results",
+        "Can work with APM tools and performance profiling"
+      ],
+      EXPERT: [
+        "Can architect performance testing frameworks for complex systems",
+        "Can conduct advanced performance analysis and tuning",
+        "Can implement performance engineering practices in SDLC",
+        "Can lead performance optimization initiatives",
+        "Can establish performance testing standards and best practices"
+      ]
+    }
+  },
+
+  "BUSINESS & PRODUCT": {
+    "Product Management": {
+      BEGINNER: [
+        "Can understand basic product development lifecycle",
+        "Can write clear user stories and requirements",
+        "Can participate in product planning sessions",
+        "Can gather basic customer feedback and requirements",
+        "Can understand market and competitor analysis basics"
+      ],
+      INTERMEDIATE: [
+        "Can create and maintain product roadmaps",
+        "Can prioritize features based on business value and effort",
+        "Can conduct user research and market analysis",
+        "Can define and track product metrics and KPIs",
+        "Can collaborate effectively with cross-functional teams"
+      ],
+      EXPERT: [
+        "Can develop and execute comprehensive product strategies",
+        "Can lead product vision and innovation initiatives",
+        "Can manage complex stakeholder relationships",
+        "Can optimize product development processes",
+        "Can mentor and lead product management teams"
+      ]
+    },
+    "Business Analysis": {
+      BEGINNER: [
+        "Can gather and document basic business requirements",
+        "Can create simple process flow diagrams",
+        "Can participate in stakeholder meetings",
+        "Can understand basic business domain concepts",
+        "Can write basic user stories and use cases"
+      ],
+      INTERMEDIATE: [
+        "Can conduct detailed business process analysis",
+        "Can create comprehensive requirement specifications",
+        "Can facilitate workshops and requirement gathering sessions",
+        "Can analyze and optimize business processes",
+        "Can create detailed documentation and reports"
+      ],
+      EXPERT: [
+        "Can lead complex business transformation initiatives",
+        "Can develop business architecture and strategy",
+        "Can mentor and lead business analysis teams",
+        "Can implement business analysis best practices",
+        "Can drive organizational change and improvement"
+      ]
+    }
+  },
+
+  "IT & INFRASTRUCTURE": {
+    "System Administration": {
+      BEGINNER: [
+        "Can perform basic server setup and configuration",
+        "Can manage user accounts and permissions",
+        "Can perform basic troubleshooting and maintenance",
+        "Can understand network fundamentals",
+        "Can use basic command-line tools and scripts"
+      ],
+      INTERMEDIATE: [
+        "Can manage complex server environments and clusters",
+        "Can implement automation for system administration tasks",
+        "Can perform advanced troubleshooting and performance tuning",
+        "Can implement security policies and compliance requirements",
+        "Can design and implement backup and recovery strategies"
+      ],
+      EXPERT: [
+        "Can architect enterprise IT infrastructure solutions",
+        "Can lead IT strategy and digital transformation initiatives",
+        "Can implement advanced security and compliance frameworks",
+        "Can optimize IT operations and service delivery",
+        "Can manage large-scale infrastructure teams and projects"
+      ]
+    },
+    "Network Engineering": {
+      BEGINNER: [
+        "Can understand basic networking concepts and protocols",
+        "Can configure basic network devices (routers, switches)",
+        "Can troubleshoot basic network connectivity issues",
+        "Can understand IP addressing and subnetting",
+        "Can use basic network monitoring tools"
+      ],
+      INTERMEDIATE: [
+        "Can design and implement complex network architectures",
+        "Can configure advanced routing and switching protocols",
+        "Can implement network security measures and policies",
+        "Can optimize network performance and reliability",
+        "Can manage enterprise wireless networks"
+      ],
+      EXPERT: [
+        "Can architect global network infrastructure solutions",
+        "Can implement software-defined networking (SDN) solutions",
+        "Can lead network transformation and modernization initiatives",
+        "Can optimize network costs and performance at scale",
+        "Can establish network engineering standards and best practices"
+      ]
+    }
   }
 };

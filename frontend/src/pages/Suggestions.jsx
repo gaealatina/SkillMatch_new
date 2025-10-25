@@ -7,10 +7,10 @@ import {
   ExternalLink, 
   Video, 
   FileText,
-  CheckCircle,
-  Plus,
   X,
-  User
+  Target,
+  BarChart3,
+  AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import DashboardNav from '../components/dashboardNav.jsx';
@@ -46,14 +46,12 @@ export default function Suggestions() {
   const navigate = useNavigate();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [recommendations, setRecommendations] = useState([]);
-  const [goals, setGoals] = useState([]);
   const [hiddenRecommendations, setHiddenRecommendations] = useState(new Set());
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userSkills, setUserSkills] = useState([]);
 
-  // Fetch user data and recommendations
   useEffect(() => {
     const fetchUserDataAndRecommendations = async () => {
       try {
@@ -65,7 +63,6 @@ export default function Suggestions() {
           return;
         }
 
-        // Fetch user profile data
         const profileResponse = await axios.get(`${API_BASE_URL}/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -75,18 +72,22 @@ export default function Suggestions() {
         setUserData(profileResponse.data.user);
         setUserSkills(profileResponse.data.skills || []);
 
-        // Fetch personalized recommendations
         const suggestionsResponse = await axios.get(`${API_BASE_URL}/suggestions`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        setRecommendations(suggestionsResponse.data.recommendations || []);
+        if (suggestionsResponse.data.success) {
+          setRecommendations(suggestionsResponse.data.recommendations || []);
+        } else {
+          throw new Error('Failed to fetch recommendations');
+        }
         
       } catch (err) {
         console.error('Error fetching data:', err);
         toast.error('Failed to load recommendations');
+        setRecommendations([]);
         
         if (err.response?.status === 401) {
           localStorage.removeItem('token');
@@ -105,28 +106,10 @@ export default function Suggestions() {
   );
 
   const totalResources = visibleRecommendations.reduce(
-    (total, rec) => total + rec.resourceLinks.length, 0
+    (total, rec) => total + (rec.resourceLinks?.length || 0), 0
   );
 
-  const handleStartLearning = (skillName) => {
-    toast.success(`Started learning ${skillName}!`, {
-      description: 'Keep track of your progress in the Profile section'
-    });
-  };
-
-  const handleAddToGoals = (skillName) => {
-    if (goals.includes(skillName)) {
-      toast.info(`${skillName} is already in your goals`, {
-        description: 'Check your goals in the Settings section'
-      });
-      return;
-    }
-
-    setGoals([...goals, skillName]);
-    toast.success(`Added ${skillName} to your goals!`, {
-      description: 'View your goals in the Settings section'
-    });
-  };
+  const highPriorityCount = visibleRecommendations.filter(rec => rec.priority === 'HIGH').length;
 
   const handleNotInterested = (skillName) => {
     setHiddenRecommendations(prev => new Set([...prev, skillName]));
@@ -158,13 +141,26 @@ export default function Suggestions() {
   const getPriorityColor = (priority) => {
     switch (priority) {
       case 'HIGH':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-200 dark:border-red-700';
       case 'MEDIUM':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900 dark:text-yellow-200 dark:border-yellow-700';
       case 'LOW':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-700';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700';
+    }
+  };
+
+  const getPriorityIcon = (priority) => {
+    switch (priority) {
+      case 'HIGH':
+        return <Target size={16} className="text-red-600" />;
+      case 'MEDIUM':
+        return <BarChart3 size={16} className="text-yellow-600" />;
+      case 'LOW':
+        return <TrendingUp size={16} className="text-green-600" />;
+      default:
+        return <Lightbulb size={16} className="text-gray-600" />;
     }
   };
 
@@ -188,100 +184,81 @@ export default function Suggestions() {
         setIsMobileMenuOpen={setIsMobileMenuOpen}
       />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header Section */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center">
-              <Lightbulb size={24} className="text-white" />
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-foreground mb-4">
+              9 AI Recommendations for You
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Based on your current skills and project roles, we've identified these growth opportunities
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-2xl p-6 border border-blue-200/50 dark:border-blue-700/30 hover:shadow-lg transition-all duration-300">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">Active Recommendations</p>
+                  <p className="text-4xl font-bold text-blue-900 dark:text-blue-100">{visibleRecommendations.length}</p>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center">
+                  <Lightbulb size={24} className="text-white" />
+                </div>
+              </div>
+              <div className="mt-4 flex items-center text-sm text-blue-600 dark:text-blue-400">
+                <TrendingUp size={16} className="mr-1" />
+                <span>Based on your skill profile</span>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Personalized Skill Recommendations</h1>
-              <p className="text-lg text-muted-foreground max-w-3xl">
-                Based on your current skills and progress, we've identified these growth opportunities.
-                {userSkills.length > 0 && ` You have ${userSkills.length} skills in your profile.`}
-              </p>
+
+            <div className="bg-gradient-to-br from-red-50 to-orange-100 dark:from-red-950/30 dark:to-orange-950/30 rounded-2xl p-6 border border-red-200/50 dark:border-red-700/30 hover:shadow-lg transition-all duration-300">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-red-700 dark:text-red-300 mb-2">Priority Level</p>
+                  <p className="text-4xl font-bold text-red-900 dark:text-red-100">High</p>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center">
+                  <Target size={24} className="text-white" />
+                </div>
+              </div>
+              <div className="mt-4 flex items-center text-sm text-red-600 dark:text-red-400">
+                <AlertCircle size={16} className="mr-1" />
+                <span>{highPriorityCount} high priority items</span>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950/30 dark:to-emerald-950/30 rounded-2xl p-6 border border-green-200/50 dark:border-green-700/30 hover:shadow-lg transition-all duration-300">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-green-700 dark:text-green-300 mb-2">Learning Resources</p>
+                  <p className="text-4xl font-bold text-green-900 dark:text-green-100">{totalResources}</p>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
+                  <BookOpen size={24} className="text-white" />
+                </div>
+              </div>
+              <div className="mt-4 flex items-center text-sm text-green-600 dark:text-green-400">
+                <FileText size={16} className="mr-1" />
+                <span>Curated learning materials</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          {/* Active Recommendations */}
-          <div className="bg-gradient-to-r from-primary to-secondary rounded-xl p-6 text-white hover:shadow-lg transition-all duration-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm opacity-90 mb-1">Active Recommendations</p>
-                <p className="text-3xl font-bold">{visibleRecommendations.length}</p>
-              </div>
-              <TrendingUp size={24} className="opacity-80" />
-            </div>
-          </div>
-
-          {/* Your Skills */}
-          <div className="bg-card rounded-xl p-6 border border-border hover:shadow-md transition-all duration-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Your Skills</p>
-                <p className="text-3xl font-bold text-primary">{userSkills.length}</p>
-              </div>
-              <User size={24} className="text-primary" />
-            </div>
-          </div>
-
-          {/* Learning Resources */}
-          <div className="bg-card rounded-xl p-6 border border-border hover:shadow-md transition-all duration-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Learning Resources</p>
-                <p className="text-3xl font-bold text-success">{totalResources}</p>
-              </div>
-              <BookOpen size={24} className="text-success" />
-            </div>
-          </div>
-
-          {/* Average Skill Level */}
-          <div className="bg-card rounded-xl p-6 border border-border hover:shadow-md transition-all duration-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Avg. Skill Level</p>
-                <p className="text-2xl font-bold text-warning">
-                  {userSkills.length > 0 
-                    ? Math.round(userSkills.reduce((sum, skill) => sum + skill.level, 0) / userSkills.length) + '%'
-                    : '0%'
-                  }
-                </p>
-              </div>
-              <Lightbulb size={24} className="text-warning" />
-            </div>
-          </div>
-        </div>
-
-        {/* Recommendation Cards */}
         <div className="space-y-6 mb-8">
           {visibleRecommendations.length === 0 ? (
             <div className="bg-card rounded-xl border border-border p-8 text-center">
               <Lightbulb size={48} className="mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-xl font-bold text-card-foreground mb-2">No Recommendations Yet</h3>
+              <h3 className="text-xl font-bold text-card-foreground mb-2">
+                No Recommendations Yet
+              </h3>
               <p className="text-muted-foreground mb-4">
-                {userSkills.length === 0 
-                  ? "Add some skills to your profile to get personalized recommendations!"
-                  : "Your skills are well-developed! Keep up the great work."
-                }
+                Add some skills to your profile to get personalized recommendations!
               </p>
-              {userSkills.length === 0 && (
-                <button
-                  onClick={() => navigate('/profile')}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-[12px] hover:bg-primary/90 transition-colors"
-                >
-                  <Plus size={16} />
-                  Add Your First Skill
-                </button>
-              )}
             </div>
           ) : (
             visibleRecommendations.map((rec, index) => (
-              <div key={rec.skillName} className="bg-card rounded-xl border border-border overflow-hidden hover:shadow-md transition-all duration-200">
-                {/* Card Header */}
+              <div key={`${rec.skillName}-${index}`} className=" bg-card rounded-xl border border-border overflow-hidden hover:shadow-md transition-all duration-200">
                 <div className="pt-6 px-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
@@ -291,20 +268,27 @@ export default function Suggestions() {
                       <div>
                         <h3 className="text-xl font-bold text-card-foreground">{rec.skillName}</h3>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPriorityColor(rec.priority)}`}>
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPriorityColor(rec.priority)}`}>
+                            {getPriorityIcon(rec.priority)}
                             {rec.priority} Priority
                           </span>
                           {rec.currentLevel > 0 && (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900 dark:text-blue-200 dark:border-blue-700">
                               Current: {rec.currentLevel}%
                             </span>
                           )}
                         </div>
                       </div>
                     </div>
+                    <button
+                      onClick={() => handleNotInterested(rec.skillName)}
+                      className="flex items-center gap-2 px-3 py-2 text-muted-foreground hover:text-card-foreground hover:bg-muted rounded-lg transition-colors"
+                    >
+                      <X size={16} />
+                      Not Interested
+                    </button>
                   </div>
 
-                  {/* Analysis Section */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
@@ -323,26 +307,27 @@ export default function Suggestions() {
                     </div>
                   </div>
 
-                  {/* Learning Resources */}
-                  <div className="mb-6">
-                    <h4 className="font-semibold text-card-foreground mb-4">Recommended Learning Resources</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {rec.resourceLinks.map((resource, idx) => (
-                        <div key={idx} className="flex items-center gap-3 p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors border border-border">
-                          {getResourceIcon(resource.type)}
-                          <div className="flex-1">
-                            <p className="font-medium text-card-foreground">{resource.title}</p>
-                            <p className="text-xs text-muted-foreground capitalize">{resource.type}</p>
+                  {rec.resourceLinks && rec.resourceLinks.length > 0 && (
+                    <div className="mb-6">
+                      <h4 className="font-semibold text-card-foreground mb-4">Recommended Learning Resources</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {rec.resourceLinks.map((resource, idx) => (
+                          <div key={idx} className="flex items-center gap-3 p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors border border-border">
+                            {getResourceIcon(resource.type)}
+                            <div className="flex-1">
+                              <p className="font-medium text-card-foreground">{resource.title}</p>
+                              <p className="text-xs text-muted-foreground capitalize">{resource.type}</p>
+                            </div>
+                            <button
+                              onClick={() => handleViewResource(resource.title, resource.url)}
+                              className="flex items-center gap-1 text-sm text-primary hover:text-primary/80 transition-colors"
+                            >
+                              View
+                              <ExternalLink size={14} />
+                            </button>
                           </div>
-                          <button
-                            onClick={() => handleViewResource(resource.title, resource.url)}
-                            className="flex items-center gap-1 text-sm text-primary hover:text-primary/80 transition-colors"
-                          >
-                            View
-                            <ExternalLink size={14} />
-                          </button>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </div>
 
@@ -370,13 +355,13 @@ export default function Suggestions() {
                       Not Interested
                     </button>
                   </div>
+                  )}
                 </div>
               </div>
             ))
           )}
         </div>
 
-        {/* Pro Tips Section */}
         <div className="bg-card rounded-xl border border-border p-6 hover:shadow-md transition-all duration-200">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center">
@@ -384,7 +369,7 @@ export default function Suggestions() {
             </div>
             <h3 className="text-xl font-bold text-card-foreground">Pro Tips for Skill Development</h3>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className=" grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {proTips.map((tip, index) => (
               <div key={index} className="flex items-start gap-3 p-4 bg-muted/30 rounded-lg border border-border hover:bg-muted/50 transition-colors">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">

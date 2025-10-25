@@ -15,7 +15,12 @@ const skillSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ["PROGRAMMING", "WEB DEVELOPMENT", "UI/UX DESIGN", "FRONTEND", "BACKEND", "TOOLS", "OTHER"],
+    enum: [
+      "PROGRAMMING", "WEB DEVELOPMENT", "UI/UX DESIGN", "FRONTEND", "BACKEND", "TOOLS", 
+      "MOBILE DEVELOPMENT", "DATA SCIENCE", "DEVOPS & CLOUD", "PROJECT MANAGEMENT", 
+      "CYBERSECURITY", "SOFTWARE ARCHITECTURE", "QUALITY ASSURANCE", "BUSINESS & PRODUCT", 
+      "IT & INFRASTRUCTURE", "OTHER"
+    ],
     required: true,
   },
   createdAt: {
@@ -148,47 +153,38 @@ const userSchema = new mongoose.Schema(
   {
     firstName: {
       type: String,
-      required: true,
+      required: [true, 'First name is required'],
       trim: true,
+      maxlength: [50, 'First name cannot exceed 50 characters']
     },
     lastName: {
       type: String,
-      required: true,
+      required: [true, 'Last name is required'],
       trim: true,
+      maxlength: [50, 'Last name cannot exceed 50 characters']
     },
     email: {
       type: String,
-      required: true,
+      required: [true, 'Email is required'],
       unique: true,
       lowercase: true,
       trim: true,
-    },
-    id: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
+      match: [/^[^\s@]+@gmail\.com$/i, 'Please enter a valid Gmail address']
     },
     password: {
       type: String,
       required: true,
+      select: false,
     },
-    userType: {
+    profilePicture: {
       type: String,
-      enum: ["student", "educator"],
-      required: true,
+      default: null,
     },
     course: {
       type: String,
       default: null,
-      trim: true,
     },
     yearLevel: {
-      type: String,
-      default: null,
-      trim: true,
-    },
-    profilePicture: {
       type: String,
       default: null,
     },
@@ -203,17 +199,15 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Add generateRecommendations method AFTER userSchema is defined
+// Add generateRecommendations method
 userSchema.methods.generateRecommendations = function() {
   const recommendations = [];
   const skillLevels = {};
 
-  // Analyze current skill levels
   this.skills.forEach(skill => {
     skillLevels[skill.name] = skill.level;
   });
 
-  // Recommendation rules based on skill levels
   const recommendationRules = [
     {
       skillName: "JavaScript",
@@ -272,7 +266,6 @@ userSchema.methods.generateRecommendations = function() {
     }
   ];
 
-  // Generate recommendations based on current skills
   recommendationRules.forEach(rule => {
     const currentLevel = skillLevels[rule.skillName] || 0;
     
@@ -283,23 +276,22 @@ userSchema.methods.generateRecommendations = function() {
         reason: rule.reason,
         suggestedAction: rule.suggestedAction,
         resourceLinks: rule.resourceLinks,
-        priority: rule.maxLevel - currentLevel // Higher gap = higher priority
+        priority: currentLevel < 30 ? "HIGH" : currentLevel < 60 ? "MEDIUM" : "LOW"
       });
     }
   });
 
   // Sort by priority (skills needing most improvement first)
-  return recommendations.sort((a, b) => b.priority - a.priority);
+  return recommendations.sort((a, b) => {
+    const priorityOrder = { HIGH: 3, MEDIUM: 2, LOW: 1 };
+    return priorityOrder[b.priority] - priorityOrder[a.priority];
+  });
 };
 
+// Improved password hashing middleware
 userSchema.pre("save", async function (next) {
-  // Skip if password hasn't been modified
+  // Only hash the password if it's modified (or new)
   if (!this.isModified("password")) {
-    return next();
-  }
-
-  // Skip if password is already hashed
-  if (this.password.startsWith("$2a$") || this.password.startsWith("$2b$")) {
     return next();
   }
 
@@ -315,6 +307,12 @@ userSchema.pre("save", async function (next) {
 
 userSchema.methods.matchPassword = async function (enteredPassword) {
   try {
+    // If password is not selected, we need to fetch it first
+    if (!this.password) {
+      const userWithPassword = await mongoose.model('User').findById(this._id).select('+password');
+      return await bcrypt.compare(enteredPassword, userWithPassword.password);
+    }
+    
     const match = await bcrypt.compare(enteredPassword, this.password);
     return match;
   } catch (error) {

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Briefcase, 
@@ -16,193 +16,31 @@ import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
-// Mock user skills data
-const mockUserSkills = [
-  { skillId: '1', skillName: 'JavaScript', proficiency: 85, category: 'Programming' },
-  { skillId: '2', skillName: 'React', proficiency: 80, category: 'Web Development' },
-  { skillId: '3', skillName: 'CSS/Tailwind', proficiency: 90, category: 'Web Development' },
-  { skillId: '4', skillName: 'TypeScript', proficiency: 75, category: 'Programming' },
-  { skillId: '5', skillName: 'Git/GitHub', proficiency: 70, category: 'Tools' },
-  { skillId: '6', skillName: 'Problem Solving', proficiency: 75, category: 'Soft Skills' },
-  { skillId: '7', skillName: 'UI/UX Design', proficiency: 0, category: 'Design' },
-  { skillId: '8', skillName: 'Node.js', proficiency: 0, category: 'Backend' },
-  { skillId: '9', skillName: 'Python', proficiency: 0, category: 'Programming' },
-  { skillId: '10', skillName: 'SQL', proficiency: 0, category: 'Database' },
-  { skillId: '11', skillName: 'Database Design', proficiency: 0, category: 'Database' },
-  { skillId: '12', skillName: 'Java', proficiency: 0, category: 'Programming' },
-  { skillId: '13', skillName: 'Agile/Scrum', proficiency: 0, category: 'Methodology' },
-  { skillId: '14', skillName: 'Team Leadership', proficiency: 0, category: 'Soft Skills' },
-  { skillId: '15', skillName: 'Communication', proficiency: 0, category: 'Soft Skills' },
-];
-
-// Career paths data
-const careerPaths = [
-  {
-    id: '1',
-    title: 'Frontend Developer',
-    description: 'Build user interfaces and interactive web experiences',
-    icon: '💻',
-    requiredSkills: [
-      { name: 'JavaScript', importance: 'critical' },
-      { name: 'React', importance: 'critical' },
-      { name: 'CSS/Tailwind', importance: 'critical' },
-      { name: 'TypeScript', importance: 'important' },
-      { name: 'Git/GitHub', importance: 'important' },
-      { name: 'Problem Solving', importance: 'important' },
-      { name: 'UI/UX Design', importance: 'nice-to-have' },
-    ],
-    averageSalary: '$75,000 - $120,000',
-    demandLevel: 'high',
-    growthRate: '+15% annually',
-  },
-  {
-    id: '2',
-    title: 'UI/UX Designer',
-    description: 'Create intuitive and beautiful user experiences',
-    icon: '🎨',
-    requiredSkills: [
-      { name: 'UI/UX Design', importance: 'critical' },
-      { name: 'Communication', importance: 'critical' },
-      { name: 'Problem Solving', importance: 'critical' },
-      { name: 'CSS/Tailwind', importance: 'important' },
-      { name: 'JavaScript', importance: 'nice-to-have' },
-      { name: 'React', importance: 'nice-to-have' },
-    ],
-    averageSalary: '$70,000 - $110,000',
-    demandLevel: 'high',
-    growthRate: '+13% annually',
-  },
-  {
-    id: '3',
-    title: 'Backend Developer',
-    description: 'Build server-side logic and database systems',
-    icon: '⚙️',
-    requiredSkills: [
-      { name: 'Node.js', importance: 'critical' },
-      { name: 'Python', importance: 'critical' },
-      { name: 'Database Design', importance: 'critical' },
-      { name: 'SQL', importance: 'critical' },
-      { name: 'Git/GitHub', importance: 'important' },
-      { name: 'Problem Solving', importance: 'important' },
-    ],
-    averageSalary: '$80,000 - $130,000',
-    demandLevel: 'high',
-    growthRate: '+17% annually',
-  },
-  {
-    id: '4',
-    title: 'Full Stack Developer',
-    description: 'Master both frontend and backend development',
-    icon: '🚀',
-    requiredSkills: [
-      { name: 'JavaScript', importance: 'critical' },
-      { name: 'React', importance: 'critical' },
-      { name: 'Node.js', importance: 'critical' },
-      { name: 'Database Design', importance: 'critical' },
-      { name: 'TypeScript', importance: 'important' },
-      { name: 'Git/GitHub', importance: 'important' },
-      { name: 'Problem Solving', importance: 'important' },
-    ],
-    averageSalary: '$85,000 - $140,000',
-    demandLevel: 'high',
-    growthRate: '+18% annually',
-  },
-  {
-    id: '5',
-    title: 'Data Analyst',
-    description: 'Transform data into actionable insights',
-    icon: '📊',
-    requiredSkills: [
-      { name: 'Python', importance: 'critical' },
-      { name: 'SQL', importance: 'critical' },
-      { name: 'Database Design', importance: 'critical' },
-      { name: 'Problem Solving', importance: 'important' },
-      { name: 'Communication', importance: 'important' },
-    ],
-    averageSalary: '$65,000 - $105,000',
-    demandLevel: 'high',
-    growthRate: '+20% annually',
-  },
-  {
-    id: '6',
-    title: 'Software Engineer',
-    description: 'Design and develop software solutions',
-    icon: '👨‍💻',
-    requiredSkills: [
-      { name: 'JavaScript', importance: 'critical' },
-      { name: 'Git/GitHub', importance: 'critical' },
-      { name: 'Problem Solving', importance: 'critical' },
-      { name: 'Python', importance: 'important' },
-      { name: 'Java', importance: 'important' },
-      { name: 'Agile/Scrum', importance: 'important' },
-      { name: 'Team Leadership', importance: 'nice-to-have' },
-    ],
-    averageSalary: '$90,000 - $150,000',
-    demandLevel: 'high',
-    growthRate: '+16% annually',
-  },
-];
-
-// Match calculation algorithm
-const calculateMatch = (careerPath, userSkills) => {
-  let totalWeight = 0;
-  let matchedWeight = 0;
-
-  careerPath.requiredSkills.forEach(skill => {
-    const weight = skill.importance === 'critical' ? 3 
-                 : skill.importance === 'important' ? 2 
-                 : 1;
-    
-    totalWeight += weight;
-    
-    const userSkill = userSkills.find(us => us.skillName === skill.name);
-    if (userSkill) {
-      const contribution = (userSkill.proficiency / 100) * weight;
-      matchedWeight += contribution;
-    }
-  });
-
-  return Math.round((matchedWeight / totalWeight) * 100);
-};
-
-// Get skill details for a career path
-const getSkillDetails = (careerPath, userSkills) => {
-  return careerPath.requiredSkills.map(skill => {
-    const userSkill = userSkills.find(us => us.skillName === skill.name);
-    return {
-      name: skill.name,
-      importance: skill.importance,
-      userProficiency: userSkill ? userSkill.proficiency : 0,
-      hasSkill: userSkill && userSkill.proficiency >= 60,
-    };
-  });
-};
-
 // Color helpers
 const getMatchColor = (percentage) => {
-  if (percentage >= 80) return 'text-success';
-  if (percentage >= 60) return 'text-secondary';
-  if (percentage >= 40) return 'text-warning';
-  return 'text-muted-foreground';
+  if (percentage >= 80) return 'text-green-600';
+  if (percentage >= 60) return 'text-blue-600';
+  if (percentage >= 40) return 'text-yellow-600';
+  return 'text-gray-500';
 };
 
 const getMatchBgColor = (percentage) => {
-  if (percentage >= 80) return 'bg-success';
-  if (percentage >= 60) return 'bg-secondary';
-  if (percentage >= 40) return 'bg-warning';
-  return 'bg-muted';
+  if (percentage >= 80) return 'bg-green-500';
+  if (percentage >= 60) return 'bg-blue-500';
+  if (percentage >= 40) return 'bg-yellow-500';
+  return 'bg-gray-300';
 };
 
 const getImportanceBadgeColor = (importance) => {
   switch (importance) {
     case 'critical':
-      return 'bg-destructive text-destructive-foreground';
+      return 'bg-red-100 text-red-800 border border-red-200';
     case 'important':
-      return 'bg-primary text-primary-foreground';
+      return 'bg-blue-100 text-blue-800 border border-blue-200';
     case 'nice-to-have':
-      return 'border border-border text-muted-foreground';
+      return 'bg-gray-100 text-gray-800 border border-gray-200';
     default:
-      return 'bg-muted text-muted-foreground';
+      return 'bg-gray-100 text-gray-800';
   }
 };
 
@@ -219,14 +57,27 @@ const getImportanceLabel = (importance) => {
   }
 };
 
+const getDemandBadge = (demandLevel) => {
+  switch (demandLevel) {
+    case 'high':
+      return 'bg-green-100 text-green-800 border border-green-200';
+    case 'medium':
+      return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+    case 'low':
+      return 'bg-red-100 text-red-800 border border-red-200';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};
+
 export default function CareerPath() {
   const navigate = useNavigate();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [rankedPaths, setRankedPaths] = useState([]);
   const [topMatch, setTopMatch] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [userSkills, setUserSkills] = useState([]);
   const [apiError, setApiError] = useState(null);
 
@@ -253,6 +104,7 @@ export default function CareerPath() {
     const fetchUserDataAndRecommendations = async () => {
       try {
         setLoading(true);
+        setApiError(null);
         const token = localStorage.getItem('token');
         
         if (!token) {
@@ -295,9 +147,7 @@ export default function CareerPath() {
           }
         }
       } catch (err) {
-        console.error('Error fetching user:', err);
-        toast.error('Failed to load user data');
-        navigate('/');
+        setApiError(err.message);
       } finally {
         setLoading(false);
       }
@@ -306,32 +156,58 @@ export default function CareerPath() {
     fetchUserDataAndRecommendations();
   }, [navigate]);
 
-  // Calculate career matches and rank them
-  const rankedPaths = useMemo(() => {
-    return careerPaths
-      .map(path => ({
-        ...path,
-        matchPercentage: calculateMatch(path, mockUserSkills),
-        skillDetails: getSkillDetails(path, mockUserSkills),
-      }))
-      .sort((a, b) => b.matchPercentage - a.matchPercentage);
-  }, []);
-
-  const topMatch = rankedPaths[0];
-
-  const handleExploreCareer = (career) => {
-    toast.success(`Exploring ${career.title}`, {
-      description: `${career.matchPercentage}% match - Great choice!`
-    });
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading career paths...</p>
+          <p className="text-muted-foreground">Analyzing your skills and career matches...</p>
+          <p className="text-sm text-gray-500 mt-2">Checking your skills database</p>
         </div>
+      </div>
+    );
+  }
+
+  // Show error state or no data state
+  if (apiError || !topMatch || rankedPaths.length === 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        <DashboardNav 
+          userName={userData ? `${userData.firstName} ${userData.lastName}` : 'User'}
+          user={userData}
+          isMobileMenuOpen={isMobileMenuOpen}
+          setIsMobileMenuOpen={setIsMobileMenuOpen}
+        />
+        <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center py-12">
+            <Briefcase className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-foreground mb-2">
+              {apiError ? 'Career Recommendations' : 'Welcome to Career Paths'}
+            </h2>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              {apiError === 'No skills found. Please add your skills to get career recommendations.' 
+                ? "You haven't added any skills yet. Add your skills to discover career paths that match your expertise."
+                : apiError || "We'll analyze your skills and show you the best career matches."
+              }
+            </p>
+            
+            <div className="space-y-4">
+              <button
+                onClick={() => navigate('/profile')}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors block mx-auto"
+              >
+                {userSkills.length === 0 ? 'Add Your First Skill' : 'Manage Your Skills'}
+              </button>
+              
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors block mx-auto"
+              >
+                Refresh Recommendations
+              </button>
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
@@ -353,25 +229,40 @@ export default function CareerPath() {
             <h1 className="text-3xl font-bold text-foreground">Career Path Recommendations</h1>
           </div>
           <p className="text-muted-foreground">
-            Discover career opportunities that match your skills and expertise
+            Personalized career opportunities based on your {userSkills.length} skills
           </p>
+          
+          {/* Success Message */}
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              <div>
+                <p className="text-sm text-green-800 font-medium">
+                  ✅ Using your {userSkills.length} skills for personalized recommendations
+                </p>
+                <p className="text-xs text-green-600 mt-1">
+                  Found {rankedPaths.length} career paths matching your skills
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Top Match Highlight Card */}
-        <section className="mb-8 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-2xl border-2 border-primary/20 p-6">
+        <section className="mb-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border-2 border-blue-200 p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <Sparkles className="h-6 w-6 text-primary" />
+              <Sparkles className="h-6 w-6 text-blue-600" />
               <div>
-                <h2 className="text-xl font-semibold text-card-foreground">Best Match for You</h2>
-                <p className="text-sm text-muted-foreground">Based on your current skill set and proficiency levels</p>
+                <h2 className="text-xl font-semibold text-gray-900">Best Match for You</h2>
+                <p className="text-sm text-gray-600">Based on your current skill set and proficiency levels</p>
               </div>
             </div>
             <div className="text-right">
               <div className={`text-4xl font-bold ${getMatchColor(topMatch.matchPercentage)}`}>
                 {topMatch.matchPercentage}%
               </div>
-              <p className="text-sm text-muted-foreground">Match</p>
+              <p className="text-sm text-gray-600">Match Score</p>
             </div>
           </div>
 
@@ -379,62 +270,101 @@ export default function CareerPath() {
           <div className="flex items-center gap-4 mb-6">
             <div className="text-5xl">{topMatch.icon}</div>
             <div className="flex-1">
-              <h3 className="text-2xl font-bold text-card-foreground">{topMatch.title}</h3>
-              <p className="text-muted-foreground mb-3">{topMatch.description}</p>
+              <h3 className="text-2xl font-bold text-gray-900">{topMatch.title}</h3>
+              <p className="text-gray-600 mb-3">{topMatch.description}</p>
               <div className="flex flex-wrap gap-2">
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-sm">
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm">
                   <TrendingUp size={14} />
                   {topMatch.growthRate}
                 </span>
-                <span className="inline-flex items-center px-3 py-1 rounded-full border border-border text-muted-foreground text-sm">
+                <span className="inline-flex items-center px-3 py-1 rounded-full border border-gray-300 text-gray-700 text-sm">
                   {topMatch.averageSalary}
                 </span>
-                <span className="inline-flex items-center px-3 py-1 rounded-full bg-success text-success-foreground text-sm">
-                  High Demand
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm ${getDemandBadge(topMatch.demandLevel)}`}>
+                  {topMatch.demandLevel === 'high' ? 'High Demand' : 'Medium Demand'}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Encouragement Alert */}
-          <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-6">
-            <div className="flex items-center gap-2">
-              <Lightbulb className="h-4 w-4 text-primary" />
-              <p className="text-sm text-card-foreground">
-                You're a great fit for this role! Focus on strengthening your critical skills to maximize your potential.
-              </p>
+          {/* Skill Match Summary */}
+          {topMatch.criticalSkillsMet !== undefined && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+              <h4 className="font-semibold text-gray-900 mb-2">Skill Match Summary</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div>
+                  <div className="text-2xl font-bold text-gray-900">{topMatch.criticalSkillsMet}/{topMatch.totalCriticalSkills}</div>
+                  <div className="text-sm text-gray-600">Critical Skills</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900">{topMatch.matchPercentage}%</div>
+                  <div className="text-sm text-gray-600">Overall Match</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900">{topMatch.skillDetails?.filter(s => s.meetsRequirement).length || 0}</div>
+                  <div className="text-sm text-gray-600">Requirements Met</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900 capitalize">{topMatch.readinessLevel}</div>
+                  <div className="text-sm text-gray-600">Readiness</div>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Skill Analysis Grid */}
           <div>
-            <h4 className="text-lg font-semibold text-card-foreground mb-4">Skill Analysis</h4>
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">Skill Analysis</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {topMatch.skillDetails.map((skill, index) => (
-                <div key={index} className="bg-card rounded-lg border border-border p-4">
+              {topMatch.skillDetails && topMatch.skillDetails.map((skill, index) => (
+                <div key={index} className={`bg-white rounded-lg border p-4 ${
+                  skill.meetsRequirement ? 'border-green-200' : 'border-red-200'
+                }`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      {skill.hasSkill ? (
-                        <CheckCircle2 className="h-5 w-5 text-success" />
+                      {skill.meetsRequirement ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
                       ) : (
-                        <AlertCircle className="h-5 w-5 text-warning" />
+                        <AlertCircle className="h-5 w-5 text-red-500" />
                       )}
-                      <span className="font-medium text-card-foreground">{skill.name}</span>
+                      <span className="font-medium text-gray-900">{skill.name}</span>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded-full ${getImportanceBadgeColor(skill.importance)}`}>
-                      {getImportanceLabel(skill.importance)}
-                    </span>
+                    <div className="flex gap-2">
+                      <span className={`text-xs px-2 py-1 rounded-full ${getImportanceBadgeColor(skill.importance)}`}>
+                        {getImportanceLabel(skill.importance)}
+                      </span>
+                      {!skill.meetsRequirement && (
+                        <span className="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">
+                          Need +{skill.gap}%
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Proficiency</span>
-                      <span className="text-card-foreground">{skill.userProficiency}%</span>
+                      <span className="text-gray-600">
+                        Your Level: {skill.userProficiency}%
+                        {skill.minProficiency && ` (Required: ${skill.minProficiency}%)`}
+                      </span>
+                      <span className={`font-medium ${
+                        skill.meetsRequirement ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {skill.meetsRequirement ? 'Meets Requirement' : 'Needs Improvement'}
+                      </span>
                     </div>
-                    <div className="w-full bg-muted rounded-full h-2">
+                    <div className="w-full bg-gray-200 rounded-full h-3">
                       <div 
-                        className={`h-2 rounded-full ${getMatchBgColor(skill.userProficiency)}`}
-                        style={{ width: `${skill.userProficiency}%` }}
+                        className={`h-3 rounded-full ${
+                          skill.meetsRequirement ? 'bg-green-500' : 'bg-red-500'
+                        }`}
+                        style={{ width: `${Math.min(skill.userProficiency, 100)}%` }}
                       />
+                      {skill.minProficiency && (
+                        <div 
+                          className="h-3 rounded-full bg-yellow-400 relative -top-3 opacity-50"
+                          style={{ width: `${skill.minProficiency}%` }}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -454,42 +384,45 @@ export default function CareerPath() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {rankedPaths.map((career) => (
-              <div key={career.id} className="bg-card rounded-xl border border-border p-6 hover:shadow-md transition-all duration-200">
+              <div key={career.id} className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-all duration-200">
                 {/* Card Header */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="text-3xl">{career.icon}</div>
                     <div>
-                      <h3 className="text-lg font-semibold text-card-foreground">{career.title}</h3>
-                      <p className="text-sm text-muted-foreground">{career.description}</p>
+                      <h3 className="text-lg font-semibold text-gray-900">{career.title}</h3>
+                      <p className="text-sm text-gray-600">{career.description}</p>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className={`text-2xl font-bold ${getMatchColor(career.matchPercentage)}`}>
                       {career.matchPercentage}%
                     </div>
-                    <p className="text-xs text-muted-foreground">Match</p>
+                    <p className="text-xs text-gray-600">Match</p>
                   </div>
                 </div>
 
                 {/* Market Data Badges */}
                 <div className="flex flex-wrap gap-2 mb-4">
-                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-secondary text-secondary-foreground text-xs">
+                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 text-blue-800 text-xs">
                     <TrendingUp size={12} />
                     {career.growthRate}
                   </span>
-                  <span className="inline-flex items-center px-2 py-1 rounded-full border border-border text-muted-foreground text-xs">
+                  <span className="inline-flex items-center px-2 py-1 rounded-full border border-gray-300 text-gray-700 text-xs">
                     {career.averageSalary}
+                  </span>
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${getDemandBadge(career.demandLevel)}`}>
+                    {career.demandLevel === 'high' ? 'High Demand' : 'Medium Demand'}
                   </span>
                 </div>
 
                 {/* Overall Match Progress Bar */}
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-card-foreground">Overall Match</span>
-                    <span className="text-sm text-muted-foreground">{career.matchPercentage}%</span>
+                    <span className="text-sm font-medium text-gray-900">Overall Match</span>
+                    <span className="text-sm text-gray-600">{career.matchPercentage}%</span>
                   </div>
-                  <div className="w-full bg-muted rounded-full h-2">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 
                       className={`h-2 rounded-full ${getMatchBgColor(career.matchPercentage)}`}
                       style={{ width: `${career.matchPercentage}%` }}
@@ -497,103 +430,107 @@ export default function CareerPath() {
                   </div>
                 </div>
 
-                {/* Required Skills Preview */}
-                <div className="mb-4">
-                  <p className="text-sm font-medium text-card-foreground mb-2">Required Skills:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {career.skillDetails.slice(0, 4).map((skill, index) => (
-                      <span 
-                        key={index}
-                        className={`text-xs px-2 py-1 rounded-full ${
-                          skill.hasSkill 
-                            ? 'bg-success text-success-foreground' 
-                            : 'border border-border text-muted-foreground'
-                        }`}
-                      >
-                        {skill.name}
+                {/* Critical Skills Progress */}
+                {career.criticalSkillsMet !== undefined && (
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-900">
+                        Critical Skills: {career.criticalSkillsMet}/{career.totalCriticalSkills}
                       </span>
-                    ))}
-                    {career.skillDetails.length > 4 && (
-                      <span className="text-xs px-2 py-1 rounded-full border border-border text-muted-foreground">
-                        +{career.skillDetails.length - 4} more
+                      <span className="text-sm text-gray-600">
+                        {Math.round((career.criticalSkillsMet / career.totalCriticalSkills) * 100)}%
                       </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Improvement Suggestion */}
-                {career.matchPercentage < 60 && (
-                  <div className="bg-muted/50 border border-border rounded-lg p-3 mb-4">
-                    <div className="flex items-center gap-2">
-                      <GraduationCap className="h-4 w-4 text-primary" />
-                      <p className="text-sm text-card-foreground">
-                        Focus on developing {career.skillDetails
-                          .filter(s => !s.hasSkill && s.importance === 'critical')
-                          .slice(0, 2)
-                          .map(s => s.name)
-                          .join(' and ')} to improve your match
-                      </p>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="h-2 rounded-full bg-red-500"
+                        style={{ width: `${(career.criticalSkillsMet / career.totalCriticalSkills) * 100}%` }}
+                      />
                     </div>
                   </div>
                 )}
 
-                {/* Action Button */}
-                <button
-                  onClick={() => handleExploreCareer(career)}
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-card-foreground border border-border rounded-lg hover:bg-muted transition-colors"
-                >
-                  Explore Career
-                </button>
+                {/* Required Skills Preview */}
+                <div className="mb-4">
+                  <p className="text-sm font-medium text-gray-900 mb-2">Key Required Skills:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {career.skillDetails && career.skillDetails.slice(0, 6).map((skill, index) => (
+                      <span 
+                        key={index}
+                        className={`text-xs px-2 py-1 rounded-full ${
+                          skill.meetsRequirement 
+                            ? 'bg-green-100 text-green-800 border border-green-200' 
+                            : 'border border-gray-300 text-gray-700'
+                        }`}
+                      >
+                        {skill.name} {skill.meetsRequirement ? '✓' : '✗'}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Improvement Suggestion */}
+                {career.matchPercentage < 80 && career.skillDetails && (
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                    <div className="flex items-center gap-2">
+                      <GraduationCap className="h-4 w-4 text-blue-600" />
+                      <p className="text-sm text-gray-800">
+                        Focus on: {career.skillDetails
+                          .filter(s => !s.meetsRequirement && s.importance === 'critical')
+                          .slice(0, 2)
+                          .map(s => s.name)
+                          .join(', ')}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         </section>
 
         {/* Next Steps Card */}
-        <section className="bg-gradient-to-br from-card to-muted/20 rounded-2xl border border-border p-6">
+        <section className="bg-gradient-to-br from-white to-gray-50 rounded-2xl border border-gray-200 p-6">
           <div className="flex items-center gap-3 mb-6">
-            <Lightbulb className="h-6 w-6 text-primary" />
-            <h2 className="text-xl font-semibold text-card-foreground">Next Steps</h2>
+            <Lightbulb className="h-6 w-6 text-blue-600" />
+            <h2 className="text-xl font-semibold text-gray-900">Next Steps</h2>
           </div>
-          <p className="text-muted-foreground mb-6">
+          <p className="text-gray-600 mb-6">
             Ready to advance your career? Here's what you can do
           </p>
 
           <div className="space-y-4">
-            {/* Step 1 */}
-            <div className="flex items-start gap-3 p-4 rounded-lg bg-card border border-border">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-primary font-bold">1</span>
+            <div className="flex items-start gap-3 p-4 rounded-lg bg-white border border-gray-200">
+              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                <span className="text-blue-600 font-bold">1</span>
               </div>
               <div>
-                <h4 className="font-semibold text-card-foreground">Strengthen Critical Skills</h4>
-                <p className="text-sm text-muted-foreground">
+                <h4 className="font-semibold text-gray-900">Strengthen Critical Skills</h4>
+                <p className="text-sm text-gray-600">
                   Focus on mastering the critical skills for your target role. Aim for 80%+ proficiency.
                 </p>
               </div>
             </div>
 
-            {/* Step 2 */}
-            <div className="flex items-start gap-3 p-4 rounded-lg bg-card border border-border">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-primary font-bold">2</span>
+            <div className="flex items-start gap-3 p-4 rounded-lg bg-white border border-gray-200">
+              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                <span className="text-blue-600 font-bold">2</span>
               </div>
               <div>
-                <h4 className="font-semibold text-card-foreground">Build Your Portfolio</h4>
-                <p className="text-sm text-muted-foreground">
+                <h4 className="font-semibold text-gray-900">Build Your Portfolio</h4>
+                <p className="text-sm text-gray-600">
                   Create projects that showcase your skills in real-world scenarios.
                 </p>
               </div>
             </div>
 
-            {/* Step 3 */}
-            <div className="flex items-start gap-3 p-4 rounded-lg bg-card border border-border">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-primary font-bold">3</span>
+            <div className="flex items-start gap-3 p-4 rounded-lg bg-white border border-gray-200">
+              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                <span className="text-blue-600 font-bold">3</span>
               </div>
               <div>
-                <h4 className="font-semibold text-card-foreground">Gain Experience</h4>
-                <p className="text-sm text-muted-foreground">
+                <h4 className="font-semibold text-gray-900">Gain Experience</h4>
+                <p className="text-sm text-gray-600">
                   Take on relevant project roles to gain practical experience and improve your skill ratings.
                 </p>
               </div>
