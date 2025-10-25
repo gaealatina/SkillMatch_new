@@ -10,7 +10,9 @@ import {
   X,
   Target,
   BarChart3,
-  AlertCircle
+  AlertCircle,
+  CheckCircle,
+  Plus
 } from 'lucide-react';
 import { toast } from 'sonner';
 import DashboardNav from '../components/dashboardNav.jsx';
@@ -116,6 +118,20 @@ export default function Suggestions() {
     toast.info(`Hidden recommendation for ${skillName}`, {
       description: 'You can adjust your preferences in Settings'
     });
+  };
+
+  const handleStartLearning = (skillName) => {
+    toast.success(`Starting to learn ${skillName}`, {
+      description: 'Great choice! We\'ll track your progress'
+    });
+    // Add logic to start learning tracking here
+  };
+
+  const handleAddToGoals = (skillName) => {
+    toast.success(`Added ${skillName} to your goals`, {
+      description: 'You can view your goals in the Dashboard'
+    });
+    // Add logic to add to goals here
   };
 
   const handleViewResource = (title, url) => {
@@ -329,7 +345,7 @@ export default function Suggestions() {
                         ))}
                       </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Action Buttons */}
                   <div className="flex flex-wrap gap-3 pb-6">
@@ -355,7 +371,6 @@ export default function Suggestions() {
                       Not Interested
                     </button>
                   </div>
-                  )}
                 </div>
               </div>
             ))
