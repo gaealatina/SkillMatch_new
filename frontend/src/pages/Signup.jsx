@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { X, CheckCircle, Eye, EyeOff, Menu } from 'lucide-react';
+import { X, CheckCircle, Eye, EyeOff, Menu, Mail } from 'lucide-react';
 import logo from '../assets/logo.png';
 
 const Signup = () => {
@@ -20,6 +20,13 @@ const Signup = () => {
   const [serverError, setServerError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // OTP related states
+  const [showOTPModal, setShowOTPModal] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [isVerifyingOTP, setIsVerifyingOTP] = useState(false);
+  const [tempEmail, setTempEmail] = useState('');
 
   const validateFirstName = (value) => /^[a-zA-Z\s]*$/.test(value);
   const validateLastName = (value) => /^[a-zA-Z\s]*$/.test(value);
@@ -75,31 +82,63 @@ const Signup = () => {
       return;
     }
 
-    // Submit to backend
+    // Send OTP to email
     try {
       setIsLoading(true);
       setServerError('');
 
-      const signupData = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password,
-        confirmPassword: formData.confirmPassword,
-      };
-
-      const response = await fetch('http://localhost:5000/api/users/signup', {
+      const response = await fetch('http://localhost:5000/api/users/signup/send-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(signupData),
+        body: JSON.stringify(formData),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        setServerError(data.message || 'Signup failed. Please try again.');
+        setServerError(data.message || 'Failed to send OTP. Please try again.');
+        return;
+      }
+
+      // Show OTP modal
+      setTempEmail(data.email);
+      setShowOTPModal(true);
+      setServerError('');
+    } catch (error) {
+      console.error('Send OTP error:', error);
+      setServerError('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    if (!otp || otp.length !== 6) {
+      setOtpError('Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    try {
+      setIsVerifyingOTP(true);
+      setOtpError('');
+
+      const response = await fetch('http://localhost:5000/api/users/signup/verify-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          otp: otp
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setOtpError(data.message || 'Invalid OTP. Please try again.');
         return;
       }
 
@@ -107,17 +146,125 @@ const Signup = () => {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      // Redirect to dashboard
+      // Redirect to login or dashboard
       navigate('/login');
     } catch (error) {
-      console.error('Signup error:', error);
-      setServerError('An error occurred during signup. Please try again.');
+      console.error('Verify OTP error:', error);
+      setOtpError('An error occurred. Please try again.');
+    } finally {
+      setIsVerifyingOTP(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    try {
+      setIsLoading(true);
+      setOtpError('');
+
+      const response = await fetch('http://localhost:5000/api/users/signup/send-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setOtpError(data.message || 'Failed to resend OTP.');
+        return;
+      }
+
+      setOtp('');
+      alert('New OTP sent to your email!');
+    } catch (error) {
+      console.error('Resend OTP error:', error);
+      setOtpError('Failed to resend OTP.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Terms of Service Modal
+  // OTP Modal Component
+  const OTPModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-md p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Mail className="text-blue-600" size={24} />
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Verify Your Email</h2>
+          </div>
+          <button
+            onClick={() => {
+              setShowOTPModal(false);
+              setOtp('');
+              setOtpError('');
+            }}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X size={24} />
+          </button>
+        </div>
+
+        <div className="mb-6">
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            We've sent a 6-digit verification code to:
+          </p>
+          <p className="font-semibold text-gray-900 dark:text-white mb-4">{tempEmail}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Please enter the code below to verify your email address.
+          </p>
+        </div>
+
+        {otpError && (
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <p className="text-red-800 dark:text-red-300 text-sm">{otpError}</p>
+          </div>
+        )}
+
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Enter OTP
+          </label>
+          <input
+            type="text"
+            value={otp}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+              setOtp(value);
+              setOtpError('');
+            }}
+            placeholder="000000"
+            maxLength={6}
+            className="w-full px-4 py-3 text-center text-2xl font-bold tracking-widest border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
+
+        <button
+          onClick={handleVerifyOTP}
+          disabled={isVerifyingOTP || otp.length !== 6}
+          className={`w-full ${
+            isVerifyingOTP || otp.length !== 6
+              ? 'bg-blue-400 cursor-not-allowed'
+              : 'bg-blue-600 hover:bg-blue-700'
+          } text-white py-3 rounded-lg font-medium transition mb-3`}
+        >
+          {isVerifyingOTP ? 'Verifying...' : 'Verify OTP'}
+        </button>
+
+        <button
+          onClick={handleResendOTP}
+          disabled={isLoading}
+          className="w-full text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium"
+        >
+          Didn't receive the code? Resend OTP
+        </button>
+      </div>
+    </div>
+  );
+
+  // Terms of Service Modal (keeping your existing one)
   const TermsModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-2 sm:p-4">
       <div className="bg-white rounded-lg w-[95%] sm:w-[90%] md:w-[85%] lg:w-[80%] xl:w-[75%] max-w-screen-xl max-h-[85vh] overflow-hidden flex flex-col">
@@ -403,7 +550,7 @@ const Signup = () => {
               disabled={isLoading}
               className={`w-full ${isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white font-semibold py-3 rounded-lg transition-colors duration-200 mt-4`}
             >
-              {isLoading ? 'Creating account...' : 'Create Account'}
+              {isLoading ? 'Sending OTP...' : 'Create Account'}
             </button>
 
             <div className='text-center text-gray-600 dark:text-gray-300'>
@@ -415,6 +562,9 @@ const Signup = () => {
 
       {/* Terms Modal */}
       {showTermsModal && <TermsModal />}
+      
+      {/* OTP Verification Modal */}
+      {showOTPModal && <OTPModal />}
     </div>
   );
 };

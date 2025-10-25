@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Mail, X } from 'lucide-react';
 import girl2 from '../assets/girl2.png';
 import logo from '../assets/logo.png';
 
@@ -15,27 +15,12 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const googleButtonRef = useRef(null);
 
-  // Initialize Google Login
-  useEffect(() => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!window.google || !clientId) {
-      console.warn('Google OAuth not configured');
-      return;
-    }
-
-    window.google.accounts.id.initialize({
-      client_id: clientId,
-      callback: handleGoogleLogin,
-    });
-
-    if (googleButtonRef.current) {
-      window.google.accounts.id.renderButton(googleButtonRef.current, {
-        theme: 'outline',
-        size: 'large',
-        width: '100%',
-      });
-    }
-  }, []);
+  // OTP related states
+  const [showOTPModal, setShowOTPModal] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [isVerifyingOTP, setIsVerifyingOTP] = useState(false);
+  const [tempEmail, setTempEmail] = useState('');
 
   // Handle Google Login
   const handleGoogleLogin = async (response) => {
@@ -67,7 +52,29 @@ const Login = () => {
     }
   };
 
-  // Handle Manual Login
+  // Initialize Google Login on component mount
+  const initializeGoogleLogin = () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!window.google || !clientId) {
+      console.warn('Google OAuth not configured');
+      return;
+    }
+
+    window.google.accounts.id.initialize({
+      client_id: clientId,
+      callback: handleGoogleLogin,
+    });
+
+    if (googleButtonRef.current) {
+      window.google.accounts.id.renderButton(googleButtonRef.current, {
+        theme: 'outline',
+        size: 'large',
+        width: '100%',
+      });
+    }
+  };
+
+  // Handle Manual Login - Step 1: Send OTP
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
@@ -82,7 +89,7 @@ const Login = () => {
       setIsLoading(true);
       setServerError('');
 
-      const response = await fetch('http://localhost:5000/api/users/login', {
+      const response = await fetch('http://localhost:5000/api/users/login/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -95,9 +102,10 @@ const Login = () => {
         return;
       }
 
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      navigate('/dashboard');
+      // Show OTP modal
+      setTempEmail(data.email);
+      setShowOTPModal(true);
+      setServerError('');
     } catch (error) {
       console.error('Login error:', error);
       setServerError('An error occurred during login. Please try again.');
@@ -105,6 +113,148 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+
+  // Handle OTP Verification
+  const handleVerifyOTP = async () => {
+    if (!otp || otp.length !== 6) {
+      setOtpError('Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    try {
+      setIsVerifyingOTP(true);
+      setOtpError('');
+
+      const response = await fetch('http://localhost:5000/api/users/login/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: tempEmail, otp }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setOtpError(data.message || 'Invalid OTP. Please try again.');
+        return;
+      }
+
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Verify OTP error:', error);
+      setOtpError('An error occurred. Please try again.');
+    } finally {
+      setIsVerifyingOTP(false);
+    }
+  };
+
+  // Resend OTP
+  const handleResendOTP = async () => {
+    try {
+      setIsLoading(true);
+      setOtpError('');
+
+      const response = await fetch('http://localhost:5000/api/users/login/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: tempEmail, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setOtpError(data.message || 'Failed to resend OTP.');
+        return;
+      }
+
+      setOtp('');
+      alert('New OTP sent to your email!');
+    } catch (error) {
+      console.error('Resend OTP error:', error);
+      setOtpError('Failed to resend OTP.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // OTP Modal Component
+  const OTPModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-md p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Mail className="text-blue-600" size={24} />
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Verify Your Login</h2>
+          </div>
+          <button
+            onClick={() => {
+              setShowOTPModal(false);
+              setOtp('');
+              setOtpError('');
+            }}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X size={24} />
+          </button>
+        </div>
+
+        <div className="mb-6">
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            We've sent a 6-digit verification code to:
+          </p>
+          <p className="font-semibold text-gray-900 dark:text-white mb-4">{tempEmail}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Please enter the code below to complete your login.
+          </p>
+        </div>
+
+        {otpError && (
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <p className="text-red-800 dark:text-red-300 text-sm">{otpError}</p>
+          </div>
+        )}
+
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Enter OTP
+          </label>
+          <input
+            type="text"
+            value={otp}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+              setOtp(value);
+              setOtpError('');
+            }}
+            placeholder="000000"
+            maxLength={6}
+            className="w-full px-4 py-3 text-center text-2xl font-bold tracking-widest border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
+
+        <button
+          onClick={handleVerifyOTP}
+          disabled={isVerifyingOTP || otp.length !== 6}
+          className={`w-full ${
+            isVerifyingOTP || otp.length !== 6
+              ? 'bg-blue-400 cursor-not-allowed'
+              : 'bg-blue-600 hover:bg-blue-700'
+          } text-white py-3 rounded-lg font-medium transition mb-3`}
+        >
+          {isVerifyingOTP ? 'Verifying...' : 'Verify OTP'}
+        </button>
+
+        <button
+          onClick={handleResendOTP}
+          disabled={isLoading}
+          className="w-full text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium"
+        >
+          Didn't receive the code? Resend OTP
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center p-4 relative transition-colors duration-300">
@@ -191,24 +341,24 @@ const Login = () => {
               {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
             </div>
 
-             {/* Remember Me and Forgot Password */}
-             <div className="flex items-center justify-between">
-               <div className="flex items-center">
-                 <input
-                   type="checkbox"
-                   id="rememberMe"
-                   checked={rememberMe}
-                   onChange={(e) => setRememberMe(e.target.checked)}
-                   className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                 />
-                 <label htmlFor="rememberMe" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                   Remember me
-                 </label>
-               </div>
-               <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
-                 Forgot Password?
-               </Link>
-             </div>
+            {/* Remember Me and Forgot Password */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                />
+                <label htmlFor="rememberMe" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                  Remember me
+                </label>
+              </div>
+              <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
+                Forgot Password?
+              </Link>
+            </div>
 
             {/* Login Button */}
             <button
@@ -218,7 +368,7 @@ const Login = () => {
                 isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
               } text-white py-2.5 rounded-lg font-medium transition text-sm`}
             >
-              {isLoading ? 'Signing in...' : 'Login'}
+              {isLoading ? 'Sending OTP...' : 'Login'}
             </button>
 
             {/* Sign Up Link */}
@@ -241,7 +391,16 @@ const Login = () => {
           </div>
 
           {/* Google Login Button */}
-          <div ref={googleButtonRef} className="w-full flex items-center justify-center"></div>
+          <div ref={googleButtonRef} className="w-full flex items-center justify-center">
+            <button
+              type="button"
+              onClick={initializeGoogleLogin}
+              className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+              Continue with Google
+            </button>
+          </div>
         </div>
 
         {/* Right Side - Image */}
@@ -261,6 +420,9 @@ const Login = () => {
           </div>
         </div>
       </div>
+
+      {/* OTP Verification Modal */}
+      {showOTPModal && <OTPModal />}
     </div>
   );
 };
